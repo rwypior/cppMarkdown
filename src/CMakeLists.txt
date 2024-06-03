@@ -1,0 +1,1 @@
+target_sources(cppMarkdown PUBLIC PRIVATE	document.cpp blankelement.cpp)

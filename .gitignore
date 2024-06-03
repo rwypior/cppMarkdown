@@ -1,0 +1,6 @@
+*.pyc
+CMakeSettings.json
+
+.vs/
+out/
+build/
