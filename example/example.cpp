@@ -2,6 +2,12 @@
 
 int main()
 {
-	cout << "Hello CMake." << endl;
+	std::string markdown = R"md(# Some title
+Some text
+)md";
+
+	Markdown::Document doc;
+	doc.parse(markdown);
+
 	return 0;
 }
