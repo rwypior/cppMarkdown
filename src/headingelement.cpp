@@ -40,6 +40,26 @@ namespace Markdown
         return HeadingElement::Heading::Invalid;
     }
 
+    HeadingElement::Heading parseHeadingAlternate(const std::string &line)
+    {
+        if (line.empty())
+            return HeadingElement::Heading::Invalid;
+
+        size_t p = line.find_first_not_of('=');
+        if (line.front() == '=' && p == std::string::npos)
+        {
+            return HeadingElement::Heading::Heading1;
+        }
+
+        p = line.find_first_not_of('-');
+        if (line.front() == '-' && p == std::string::npos)
+        {
+            return HeadingElement::Heading::Heading2;
+        }
+
+        return HeadingElement::Heading::Invalid;
+    }
+
 	Type HeadingElement::getType() const
 	{
 		return Type::Heading;
@@ -55,6 +75,21 @@ namespace Markdown
                 ParseCode::ElementComplete,
                 std::make_shared<HeadingElement>(heading, getHeadingText(line))
             );
+        }
+
+        if (previous && previous->getType() == Type::Paragraph)
+        {
+            heading = parseHeadingAlternate(line);
+
+            if (heading != Heading::Invalid)
+            {
+                std::string text = std::static_pointer_cast<ParagraphElement>(previous)->text.getRawText();
+
+                return ParseResult(
+                    ParseCode::ElementCompleteDiscardPrevious,
+                    std::make_shared<HeadingElement>(heading, text)
+                );
+            }
         }
 
 		return ParseResult(ParseCode::Invalid);

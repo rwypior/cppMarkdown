@@ -14,6 +14,9 @@ namespace Markdown
         if (ParseResult result = parseElement<HeadingElement>(line, previous))
             return result;
 
+        if (ParseResult result = parseElement<ParagraphElement>(line, previous))
+            return result;
+
         return parseElement<ParagraphElement>(line, previous);
     }
 }

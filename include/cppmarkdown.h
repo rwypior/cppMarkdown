@@ -17,8 +17,11 @@ namespace Markdown
 
     enum class ParseCode
     {
+        Discard,
         RequestMore,
         ElementComplete,
+        RequestMoreAcceptPrevious,
+        ElementCompleteDiscardPrevious,
         Invalid
     };
 
@@ -31,6 +34,38 @@ namespace Markdown
         Link,
         Image,
         Table
+    };
+
+    struct TextEntry
+    {
+        enum class Style
+        {
+            Normal,
+            Bold,
+            Italic,
+            BoldItalic
+        };
+
+        struct Span
+        {
+            std::string text;
+            Style style;
+
+            Span(const std::string& text, Style style = Style::Normal)
+                : text(text)
+                , style(style)
+            { }
+        };
+
+        std::vector<Span> spans;
+
+        TextEntry(const std::string& content);
+
+        std::string getText() const;
+        std::string getHtml() const;
+        std::string getRawText() const;
+
+        bool empty() const;
     };
 
     struct Element;
@@ -68,11 +103,9 @@ namespace Markdown
 
     struct ParagraphElement : Element
     {
-        std::string text;
+        TextEntry text;
 
-        ParagraphElement(const std::string& text = "")
-            : text(text)
-        { }
+        ParagraphElement(const std::string &content = "");
 
         virtual Type getType() const override;
         virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) override;
@@ -115,6 +148,7 @@ namespace Markdown
     {
     public:
         static Document load(const std::string& path);
+        ParseResult parseLine(const std::string& line, std::shared_ptr<Element> previous);
         void parse(const std::string& content);
 
         void addElement(std::shared_ptr<Element> element);

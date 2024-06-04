@@ -1,1 +1,1 @@
-target_sources(cppMarkdown PUBLIC PRIVATE	"document.cpp" "blankelement.cpp" "headingelement.cpp" "paragraphelement.cpp")
+target_sources(cppMarkdown PUBLIC PRIVATE	"document.cpp" "blankelement.cpp" "headingelement.cpp" "paragraphelement.cpp" "textentry.cpp")
