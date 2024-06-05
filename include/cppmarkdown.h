@@ -147,13 +147,19 @@ namespace Markdown
     class Document
     {
     public:
+        using ElementContainer = std::vector<std::shared_ptr<Element>>;
+
+    public:
         static Document load(const std::string& path);
         ParseResult parseLine(const std::string& line, std::shared_ptr<Element> previous);
         void parse(const std::string& content);
 
         void addElement(std::shared_ptr<Element> element);
 
+        ElementContainer::const_iterator begin();
+        ElementContainer::const_iterator end();
+
     private:
-        std::vector<std::shared_ptr<Element>> elements;
+        ElementContainer elements;
     };
 }

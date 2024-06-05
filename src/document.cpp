@@ -89,4 +89,14 @@ namespace Markdown
 	{
 		this->elements.push_back(element);
 	}
+
+	Document::ElementContainer::const_iterator Document::begin()
+	{
+		return this->elements.begin();
+	}
+
+	Document::ElementContainer::const_iterator Document::end()
+	{
+		return this->elements.end();
+	}
 }

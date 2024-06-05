@@ -12,11 +12,15 @@ namespace Markdown
 	{
 		size_t from;
 		size_t to;
+		size_t tagFrom;
+		size_t tagTo;
 		TextEntry::Style style;
 
-		StyleSpan(size_t from, size_t to, TextEntry::Style style)
+		StyleSpan(size_t from, size_t to, size_t tagFrom, size_t tagTo, TextEntry::Style style)
 			: from(from)
 			, to(to)
+			, tagFrom(tagFrom)
+			, tagTo(tagTo)
 			, style(style)
 		{ }
 	};
@@ -42,7 +46,7 @@ namespace Markdown
 		return result;
 	}
 
-	std::vector<StyleSpan> findStyle(const std::string& source)
+	std::vector<StyleSpan> findStyle(const std::string& source, TextEntry::Style defaultStyle = TextEntry::Style::Normal)
 	{
 		StyleMap stylemap{
 			{ {"***", "***"}, TextEntry::Style::BoldItalic },
@@ -71,7 +75,7 @@ namespace Markdown
 			std::string ending = tag.first.second;
 			pos = begin.second + tag.first.first.size();
 
-			styles.emplace_back(pos, std::string::npos, tag.second);
+			styles.emplace_back(pos, std::string::npos, begin.second, std::string::npos, tag.second);
 
 			// Find matching ending tag
 			size_t idx = source.find(ending, pos);
@@ -93,18 +97,71 @@ namespace Markdown
 
 			if (idx != std::string::npos)
 			{
-				styles.back().to = idx - ending.size();
+				styles.back().to = idx - 1;
+				styles.back().tagTo = idx + ending.size() - 1;
 				pos = idx + ending.size();
 			}
 		}
 
-		// Find substyles and merge
+		// Find substyles
+		std::deque<StyleSpan> mergeQueue;
 		for (StyleSpan& span : styles)
 		{
-			std::vector<StyleSpan> subStyles = findStyle(source.substr(span.from, span.to - span.from));
+			std::vector<StyleSpan> subStyles = findStyle(source.substr(span.from, span.to - span.from), span.style);
+			for (StyleSpan& sub : subStyles)
+			{
+				//mergeQueue.push_back( StyleSpan(span.from + sub.from, span.from + sub.to, span.tagFrom + sub.tagFrom, span.from + sub.tagTo, sub.style));
+				mergeQueue.push_back( StyleSpan(sub.tagFrom + span.from, sub.tagFrom + span.to, sub.tagFrom + span.tagFrom, sub.tagFrom + span.tagTo, sub.style));
+			}
 		}
 
-		// TODO - merge found substyles
+		// Merge substyles
+		std::vector<StyleSpan> stylesMerged;
+		while (!mergeQueue.empty())
+		{
+			auto entry = mergeQueue.front();
+			mergeQueue.pop_front();
+			stylesMerged.push_back(entry);
+			//for (auto it = styles.begin(); it != styles.end(); it++)
+			//{
+			//	StyleSpan& style = *it;
+			//	if (entry.from > style.from)
+			//	{
+			//		styles.insert(it, entry);
+			//		break;
+			//	}
+			//}
+		}
+
+		if (!stylesMerged.empty())
+			styles = stylesMerged;
+
+		// Fill in default styles
+		std::deque<std::pair<size_t, StyleSpan>> fillQueue;
+
+		pos = 0;
+		StyleSpan* span = nullptr;
+		for (auto it = styles.begin(); it != styles.end(); it++)
+		{
+			span = &*it;
+			if (span->tagFrom > pos)
+				fillQueue.push_back({ std::distance(styles.begin(), it), StyleSpan(pos, span->tagFrom, pos, span->tagFrom, defaultStyle) });
+			pos = span->tagTo;
+		}
+
+		if (span && span->tagTo < source.length())
+			fillQueue.push_back({ styles.size(), StyleSpan(span->tagTo + 1, source.length(), span->tagTo + 1, source.length(), defaultStyle)});
+
+		while (!fillQueue.empty())
+		{
+			auto entry = fillQueue.back();
+			fillQueue.pop_back();
+			auto it = styles.begin() + entry.first;
+			styles.insert(it, entry.second);
+		}
+
+		if (styles.empty())
+			styles.emplace_back(0, source.size(), 0, source.size(), defaultStyle);
 
 		return styles;
 	}
@@ -115,6 +172,10 @@ namespace Markdown
 			return;
 
 		std::vector<StyleSpan> styles = findStyle(content);
+		for (StyleSpan& span : styles)
+		{
+			this->spans.emplace_back(content.substr(span.from, span.to - span.from), span.style);
+		}
 	}
 
 	std::string TextEntry::getText() const

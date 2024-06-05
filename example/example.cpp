@@ -73,9 +73,65 @@ void exampleParagraphStyles()
 	doc.parse(markdown);
 }
 
+void exampleParagraphMiddle()
+{
+	std::string markdown = R"md(normal **bold** end)md";
+
+	Markdown::Document doc;
+	doc.parse(markdown);
+}
+
 void exampleParagraphMixedStyles()
 {
-	std::string markdown = R"md(*long italic text with **bold** in it*)md";
+	std::string markdown = R"md(begin *long italic text with **bold** in it* end)md";
+
+	Markdown::Document doc;
+	doc.parse(markdown);
+}
+
+void exampleParagraphMixedStylesMultiple()
+{
+	std::string markdown = R"md(begin *italic **bold** italic again **bold again** third italic* end)md";
+
+	Markdown::Document doc;
+	doc.parse(markdown);
+}
+
+void exampleParagraphMixedStylesMultipleNested()
+{
+	std::string markdown = R"md(begin *italic **bold *italic* again** italic* end)md";
+
+	Markdown::Document doc;
+	doc.parse(markdown);
+}
+
+void exampleParagraphBolditalic()
+{
+	std::string markdown = R"md(begin **_bolditalic_** end)md";
+
+	Markdown::Document doc;
+	doc.parse(markdown);
+}
+
+void exampleTraverse()
+{
+	std::string markdown = R"md(begin **_bolditalic_** end)md";
+
+	Markdown::Document doc;
+	doc.parse(markdown);
+
+	for (auto el : doc)
+	{
+		if (auto para = std::dynamic_pointer_cast<Markdown::ParagraphElement>(el))
+		{
+			std::string html = para->text.getHtml();
+		}
+	}
+}
+
+void exampleTextEntry()
+{
+	std::string markdown = R"md(some text)md";
 
 	Markdown::Document doc;
 	doc.parse(markdown);
@@ -89,7 +145,13 @@ int main()
 	//exampleHeadingAdvanced();
 	//exampleBlankLines();
 	//exampleParagraphStyles();
-	exampleParagraphMixedStyles();
+	//exampleParagraphMiddle();
+	//exampleParagraphMixedStyles();
+	//exampleParagraphMixedStylesMultiple();
+	//exampleParagraphMixedStylesMultipleNested();
+	//exampleParagraphBolditalic();
+	//exampleTraverse();
+	exampleTextEntry();
 
 	return 0;
 }
