@@ -50,10 +50,12 @@ namespace Markdown
         {
             std::string text;
             Style style;
+            size_t level;
 
-            Span(const std::string& text, Style style = Style::Normal)
+            Span(const std::string& text, Style style = Style::Normal, size_t level = 0)
                 : text(text)
                 , style(style)
+                , level(level)
             { }
         };
 

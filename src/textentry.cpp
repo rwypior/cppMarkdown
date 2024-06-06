@@ -1,6 +1,7 @@
 #include "cppmarkdown.h"
 
 #include <queue>
+#include <unordered_map>
 
 namespace Markdown
 {
@@ -15,13 +16,15 @@ namespace Markdown
 		size_t tagFrom;
 		size_t tagTo;
 		TextEntry::Style style;
+		size_t level;
 
-		StyleSpan(size_t from, size_t to, size_t tagFrom, size_t tagTo, TextEntry::Style style)
+		StyleSpan(size_t from, size_t to, size_t tagFrom, size_t tagTo, TextEntry::Style style, size_t level)
 			: from(from)
 			, to(to)
 			, tagFrom(tagFrom)
 			, tagTo(tagTo)
 			, style(style)
+			, level(level)
 		{ }
 	};
 
@@ -46,8 +49,10 @@ namespace Markdown
 		return result;
 	}
 
-	std::vector<StyleSpan> findStyle(const std::string& source, TextEntry::Style defaultStyle = TextEntry::Style::Normal)
+	std::vector<StyleSpan> findStyle(const std::string& source, TextEntry::Style defaultStyle = TextEntry::Style::Normal, size_t level = 0)
 	{
+		// TODO - gotta split this function
+
 		StyleMap stylemap{
 			{ {"***", "***"}, TextEntry::Style::BoldItalic },
 			{ {"___", "___"}, TextEntry::Style::BoldItalic },
@@ -75,7 +80,7 @@ namespace Markdown
 			std::string ending = tag.first.second;
 			pos = begin.second + tag.first.first.size();
 
-			styles.emplace_back(pos, std::string::npos, begin.second, std::string::npos, tag.second);
+			styles.emplace_back(pos, std::string::npos, begin.second, std::string::npos, tag.second, level);
 
 			// Find matching ending tag
 			size_t idx = source.find(ending, pos);
@@ -97,8 +102,8 @@ namespace Markdown
 
 			if (idx != std::string::npos)
 			{
-				styles.back().to = idx - 1;
-				styles.back().tagTo = idx + ending.size() - 1;
+				styles.back().to = idx;
+				styles.back().tagTo = idx + ending.size();
 				pos = idx + ending.size();
 			}
 		}
@@ -107,11 +112,14 @@ namespace Markdown
 		std::deque<StyleSpan> mergeQueue;
 		for (StyleSpan& span : styles)
 		{
-			std::vector<StyleSpan> subStyles = findStyle(source.substr(span.from, span.to - span.from), span.style);
+			std::vector<StyleSpan> subStyles = findStyle(source.substr(span.from, span.to - span.from), span.style, level + 1);
 			for (StyleSpan& sub : subStyles)
 			{
-				//mergeQueue.push_back( StyleSpan(span.from + sub.from, span.from + sub.to, span.tagFrom + sub.tagFrom, span.from + sub.tagTo, sub.style));
-				mergeQueue.push_back( StyleSpan(sub.tagFrom + span.from, sub.tagFrom + span.to, sub.tagFrom + span.tagFrom, sub.tagFrom + span.tagTo, sub.style));
+				size_t tagSize = span.tagTo - span.to;
+				mergeQueue.push_back( StyleSpan(
+					span.from + sub.from, span.from + sub.to, 
+					span.tagFrom + sub.tagFrom, span.from + sub.tagTo + tagSize,
+					sub.style, sub.level));
 			}
 		}
 
@@ -122,15 +130,6 @@ namespace Markdown
 			auto entry = mergeQueue.front();
 			mergeQueue.pop_front();
 			stylesMerged.push_back(entry);
-			//for (auto it = styles.begin(); it != styles.end(); it++)
-			//{
-			//	StyleSpan& style = *it;
-			//	if (entry.from > style.from)
-			//	{
-			//		styles.insert(it, entry);
-			//		break;
-			//	}
-			//}
 		}
 
 		if (!stylesMerged.empty())
@@ -139,18 +138,18 @@ namespace Markdown
 		// Fill in default styles
 		std::deque<std::pair<size_t, StyleSpan>> fillQueue;
 
-		pos = 0;
+		size_t lastpos = 0;
 		StyleSpan* span = nullptr;
 		for (auto it = styles.begin(); it != styles.end(); it++)
 		{
 			span = &*it;
-			if (span->tagFrom > pos)
-				fillQueue.push_back({ std::distance(styles.begin(), it), StyleSpan(pos, span->tagFrom, pos, span->tagFrom, defaultStyle) });
-			pos = span->tagTo;
+			if (span->tagFrom > lastpos)
+				fillQueue.push_back({ std::distance(styles.begin(), it), StyleSpan(lastpos, span->tagFrom, lastpos, span->tagFrom, defaultStyle, level) });
+			lastpos = span->tagTo;
 		}
 
-		if (span && span->tagTo < source.length())
-			fillQueue.push_back({ styles.size(), StyleSpan(span->tagTo + 1, source.length(), span->tagTo + 1, source.length(), defaultStyle)});
+		if (span && span->tagTo <= source.length())
+			fillQueue.push_back({ styles.size(), StyleSpan(span->tagTo, source.length(), span->tagTo, source.length(), defaultStyle, level)});
 
 		while (!fillQueue.empty())
 		{
@@ -161,7 +160,7 @@ namespace Markdown
 		}
 
 		if (styles.empty())
-			styles.emplace_back(0, source.size(), 0, source.size(), defaultStyle);
+			styles.emplace_back(0, source.size(), 0, source.size(), defaultStyle, level);
 
 		return styles;
 	}
@@ -174,7 +173,7 @@ namespace Markdown
 		std::vector<StyleSpan> styles = findStyle(content);
 		for (StyleSpan& span : styles)
 		{
-			this->spans.emplace_back(content.substr(span.from, span.to - span.from), span.style);
+			this->spans.emplace_back(content.substr(span.from, span.to - span.from), span.style, span.level);
 		}
 	}
 
@@ -183,32 +182,42 @@ namespace Markdown
 		std::string text;
 		for (const Span& span : this->spans)
 		{
-			text += span.text + " ";
+			text += span.text;
 		}
-
-		if (!text.empty())
-			text.pop_back();
 
 		return text;
 	}
 
 	std::string TextEntry::getHtml() const
 	{
+		using Tag = std::pair<std::string, std::string>;
+		std::deque<std::pair<size_t, Tag>> tags;
+
+		std::unordered_map<Style, Tag> tagMap{
+			{ Style::Normal, {"", ""} },
+			{ Style::Bold, {"<b>", "</b>"} },
+			{ Style::Italic, {"<i>", "</i>"} },
+			{ Style::BoldItalic, {"<b><i>", "</i></b>"} }
+		};
+		
 		std::string html;
 		for (const Span& span : this->spans)
 		{
-			std::string spanHtml = span.text;
-			switch (span.style)
+			Tag tag = tagMap.at(span.style);
+			if (tags.empty() || span.level > tags.back().first)
 			{
-			case Style::Bold: spanHtml = "<b>" + spanHtml + "</b>"; break;
-			case Style::Italic: spanHtml = "<i>" + spanHtml + "</i>"; break;
-			case Style::BoldItalic: spanHtml = "<b><i>" + spanHtml + "</i></b>"; break;
+				tags.push_back({ span.level, tag });
+				html += tag.first;
 			}
-			html += spanHtml + " ";
-		}
+			else
+			{
+				Tag closingTag = tags.back().second;
+				tags.pop_back();
+				html += closingTag.second;
+			}
 
-		if (!html.empty())
-			html.pop_back();
+			html += span.text;
+		}
 
 		return html;
 	}
