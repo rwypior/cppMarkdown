@@ -10,7 +10,7 @@ project ("cppMarkdownTest")
 find_path(CATCH2_INCLUDE_DIR NAMES catch.hpp PATHS {proper-location} OPTIONAL)
 
 add_executable(cppMarkdownTest)
-target_sources(cppMarkdownTest PRIVATE "main.cpp" "documenttest.cpp" "textentrytest.cpp")
+target_sources(cppMarkdownTest PRIVATE "main.cpp" "documenttest.cpp" "textentrytest.cpp" "paragraphtest.cpp" "headinigtest.cpp")
 
 set_property(TARGET cppMarkdownTest PROPERTY CXX_STANDARD 14)
 

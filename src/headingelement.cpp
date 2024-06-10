@@ -94,4 +94,14 @@ namespace Markdown
 
 		return ParseResult(ParseCode::Invalid);
 	}
+
+    std::string HeadingElement::getText() const
+    {
+        return this->text.getText();
+    }
+
+    std::string HeadingElement::getHtml() const
+    {
+        return this->text.getHtml();
+    }
 }

@@ -95,12 +95,9 @@ namespace Markdown
     {
         virtual Type getType() const = 0;
         virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) = 0;
-    };
 
-    struct BlankElement : Element
-    {
-        virtual Type getType() const override;
-        virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) override;
+        virtual std::string getText() const { return ""; }
+        virtual std::string getHtml() const { return ""; }
     };
 
     struct ParagraphElement : Element
@@ -111,6 +108,9 @@ namespace Markdown
 
         virtual Type getType() const override;
         virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) override;
+
+        virtual std::string getText() const override;
+        virtual std::string getHtml() const override;
     };
 
     struct HeadingElement : Element
@@ -128,7 +128,7 @@ namespace Markdown
         };
 
         Heading heading;
-        std::string text;
+        TextEntry text;
 
         HeadingElement(Heading heading = Heading::Heading1, const std::string& text = "")
             : heading(heading)
@@ -137,6 +137,9 @@ namespace Markdown
 
         virtual Type getType() const override;
         virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) override;
+
+        virtual std::string getText() const override;
+        virtual std::string getHtml() const override;
     };
 
     template<typename T>
@@ -158,6 +161,7 @@ namespace Markdown
 
         void addElement(std::shared_ptr<Element> element);
 
+        size_t elementsCount() const;
         ElementContainer::const_iterator begin();
         ElementContainer::const_iterator end();
 

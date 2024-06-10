@@ -41,4 +41,14 @@ namespace Markdown
 		
 		return ParseResult();
 	}
+
+	std::string ParagraphElement::getText() const
+	{
+		return this->text.getText();
+	}
+
+	std::string ParagraphElement::getHtml() const
+	{
+		return this->text.getHtml();
+	}
 }

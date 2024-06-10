@@ -90,6 +90,11 @@ namespace Markdown
 		this->elements.push_back(element);
 	}
 
+	size_t Document::elementsCount() const
+	{
+		return this->elements.size();
+	}
+
 	Document::ElementContainer::const_iterator Document::begin()
 	{
 		return this->elements.begin();
