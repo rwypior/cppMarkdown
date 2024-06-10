@@ -1,13 +1,12 @@
-#include "cppmarkdown.h"
+#include "textentry.h"
 
 #include <queue>
 #include <unordered_map>
 
 namespace Markdown
 {
-	using StyleTagPair = std::pair<std::string, std::string>;
-	using StyleTag = std::pair<StyleTagPair, TextEntry::Style>;
-	using StyleMap = std::vector<StyleTag>;
+	using StyleContainer = std::vector<MarkdownStyle>;
+	using StylePositionPair = std::pair<const MarkdownStyle*, size_t>;
 
 	struct StyleSpan
 	{
@@ -15,10 +14,10 @@ namespace Markdown
 		size_t to;
 		size_t tagFrom;
 		size_t tagTo;
-		TextEntry::Style style;
+		MarkdownStyle style;
 		size_t level;
 
-		StyleSpan(size_t from, size_t to, size_t tagFrom, size_t tagTo, TextEntry::Style style, size_t level)
+		StyleSpan(size_t from, size_t to, size_t tagFrom, size_t tagTo, const MarkdownStyle& style, size_t level)
 			: from(from)
 			, to(to)
 			, tagFrom(tagFrom)
@@ -28,17 +27,17 @@ namespace Markdown
 		{ }
 	};
 
-	std::pair<StyleTag, size_t> findFirst(const std::string& source, size_t pos, const StyleMap& stylemap, bool useSecond = false)
+	StylePositionPair findFirst(const std::string& source, size_t pos, const StyleContainer& stylemap, bool findClosing = false)
 	{
-		std::pair<StyleTag, size_t> result{ {}, std::string::npos };
+		StylePositionPair result{ nullptr, std::string::npos };
 
-		for (const StyleTag& t : stylemap)
+		for (const MarkdownStyle& t : stylemap)
 		{
-			std::string tofind = useSecond ? t.first.second : t.first.first;
+			std::string tofind = findClosing ? t.markdownClosing : t.markdownOpening;
 			size_t idx = source.find(tofind, pos);
 			if (idx != std::string::npos && idx < result.second)
 			{
-				result.first = t;
+				result.first = &t;
 				result.second = idx;
 
 				if (idx == 0)
@@ -49,19 +48,19 @@ namespace Markdown
 		return result;
 	}
 
-	std::vector<StyleSpan> findStyle(const std::string& source, TextEntry::Style defaultStyle = TextEntry::Style::Normal, size_t level = 0)
+	std::vector<StyleSpan> findStyle(const std::string& source, MarkdownStyle defaultStyle = MarkdownStyle(), size_t level = 0)
 	{
 		// TODO - gotta split this function
 
-		StyleMap stylemap{
-			{ {"***", "***"}, TextEntry::Style::BoldItalic },
-			{ {"___", "___"}, TextEntry::Style::BoldItalic },
-			{ {"__*", "*__"}, TextEntry::Style::BoldItalic },
-			{ {"**_", "_**"}, TextEntry::Style::BoldItalic },
-			{ {"**", "**"}, TextEntry::Style::Bold },
-			{ {"__", "__"}, TextEntry::Style::Bold },
-			{ {"*", "*"}, TextEntry::Style::Italic },
-			{ {"_", "_"}, TextEntry::Style::Italic }
+		StyleContainer stylemap{
+			{ "***", "***", { "<b><i>", "</i></b>" } },
+			{ "___", "___", { "<b><i>", "</i></b>" } },
+			{ "__*", "*__", { "<b><i>", "</i></b>" } },
+			{ "**_", "_**", { "<b><i>", "</i></b>" } },
+			{ "**", "**", { "<b>", "</b>" } },
+			{ "__", "__", { "<b>", "</b>" } },
+			{ "*", "*", { "<i>", "</i>" } },
+			{ "_", "_", { "<i>", "</i>" } },
 		};
 
 		std::vector<StyleSpan> styles;
@@ -71,16 +70,16 @@ namespace Markdown
 		while (pos != std::string::npos)
 		{
 			// Find first style tag
-			std::pair<StyleTag, size_t> begin = findFirst(source, pos, stylemap);
+			StylePositionPair begin = findFirst(source, pos, stylemap);
 			if (begin.second == std::string::npos)
 				break;
 
 			// Add the style tag to the result vector
-			StyleTag tag = begin.first;
-			std::string ending = tag.first.second;
-			pos = begin.second + tag.first.first.size();
+			const MarkdownStyle *tag = begin.first;
+			std::string ending = tag->markdownClosing;
+			pos = begin.second + tag->markdownOpening.size();
 
-			styles.emplace_back(pos, std::string::npos, begin.second, std::string::npos, tag.second, level);
+			styles.emplace_back(pos, std::string::npos, begin.second, std::string::npos, *tag, level);
 
 			// Find matching ending tag
 			size_t idx = source.find(ending, pos);
@@ -89,8 +88,8 @@ namespace Markdown
 			size_t recheckIdx = idx;
 			while (recheckIdx != std::string::npos)
 			{
-				std::pair<StyleTag, size_t> foundEnding = findFirst(source, recheckIdx, stylemap, true);
-				std::string endingStr = foundEnding.first.first.second;
+				StylePositionPair foundEnding = findFirst(source, recheckIdx, stylemap, true);
+				std::string endingStr = foundEnding.first->markdownClosing;
 				if (endingStr == ending)
 				{
 					idx = foundEnding.second;
@@ -165,12 +164,12 @@ namespace Markdown
 		return styles;
 	}
 
-	TextEntry::TextEntry(const std::string& content)
+	TextEntry::TextEntry(const std::string& content, MarkdownStyle defaultStyle)
 	{
 		if (content.empty())
 			return;
 
-		std::vector<StyleSpan> styles = findStyle(content);
+		std::vector<StyleSpan> styles = findStyle(content, defaultStyle);
 		for (StyleSpan& span : styles)
 		{
 			this->spans.emplace_back(content.substr(span.from, span.to - span.from), span.style, span.level);
@@ -190,33 +189,30 @@ namespace Markdown
 
 	std::string TextEntry::getHtml() const
 	{
-		using Tag = std::pair<std::string, std::string>;
-		std::deque<std::pair<size_t, Tag>> tags;
-
-		std::unordered_map<Style, Tag> tagMap{
-			{ Style::Normal, {"", ""} },
-			{ Style::Bold, {"<b>", "</b>"} },
-			{ Style::Italic, {"<i>", "</i>"} },
-			{ Style::BoldItalic, {"<b><i>", "</i></b>"} }
-		};
-		
+		std::deque<std::pair<size_t, Style>> tags;
+				
 		std::string html;
 		for (const Span& span : this->spans)
 		{
-			Tag tag = tagMap.at(span.style);
 			if (tags.empty() || span.level > tags.back().first)
 			{
-				tags.push_back({ span.level, tag });
-				html += tag.first;
+				tags.push_back({ span.level, span.style.style });
+				html += span.style.style.openingTag;
 			}
 			else
 			{
-				Tag closingTag = tags.back().second;
+				Style closingTag = tags.back().second;
 				tags.pop_back();
-				html += closingTag.second;
+				html += closingTag.closingTag;
 			}
 
 			html += span.text;
+		}
+
+		if (!tags.empty())
+		{
+			Style closingTag = tags.back().second;
+			html += closingTag.closingTag;
 		}
 
 		return html;
@@ -227,13 +223,7 @@ namespace Markdown
 		std::string raw;
 		for (const Span& span : this->spans)
 		{
-			std::string spanRaw = span.text;
-			switch (span.style)
-			{
-			case Style::Bold: spanRaw = "**" + spanRaw + "**"; break;
-			case Style::Italic: spanRaw = "*" + spanRaw + "*"; break;
-			case Style::BoldItalic: spanRaw = "***" + spanRaw + "***"; break;
-			}
+			std::string spanRaw = span.style.markdownOpening + span.text + span.style.markdownClosing;
 			raw += spanRaw + " ";
 		}
 

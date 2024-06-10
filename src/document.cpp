@@ -1,4 +1,8 @@
-#include "cppmarkdown.h"
+#include "document.h"
+
+#include "paragraphelement.h"
+#include "headingelement.h"
+#include "blockquoteelement.h"
 
 #include <fstream>
 #include <sstream>
@@ -6,6 +10,96 @@
 
 namespace Markdown
 {
+	// Element container
+
+	ParseResult ElementContainer::parseLine(const std::string& line, std::shared_ptr<Element> previous)
+	{
+		if (ParseResult result = parseElement<BlockquoteElement>(line, previous))
+			return result;
+
+		if (ParseResult result = parseElement<HeadingElement>(line, previous))
+			return result;
+
+		if (ParseResult result = parseElement<ParagraphElement>(line, previous))
+			return result;
+
+		return parseElement<ParagraphElement>(line, previous);
+	}
+
+	void ElementContainer::parse(const std::string& content)
+	{
+		std::shared_ptr<Element> element = nullptr;
+		std::istringstream str(content);
+		for (std::string line; std::getline(str, line); )
+		{
+			ParseResult result = this->parseLine(line, element);
+
+			switch (result.code)
+			{
+			case ParseCode::Discard:
+				break;
+
+			case ParseCode::RequestMore:
+				element = result.element;
+				break;
+
+			case ParseCode::ElementComplete:
+				this->addElement(result.element);
+				element = nullptr;
+				break;
+
+			case ParseCode::RequestMoreAcceptPrevious:
+				this->addElement(element);
+				element = result.element;
+				break;
+
+			case ParseCode::ElementCompleteDiscardPrevious:
+				this->addElement(result.element);
+				element = nullptr;
+				break;
+
+			case ParseCode::Invalid:
+				assert(!"Invalid element");
+				break;
+			}
+		}
+
+		if (element)
+			this->addElement(element);
+	}
+
+	void ElementContainer::addElement(std::shared_ptr<Element> element)
+	{
+		this->elements.push_back(element);
+	}
+
+	size_t ElementContainer::elementsCount() const
+	{
+		return this->elements.size();
+	}
+
+	ElementContainer::Container::iterator ElementContainer::begin()
+	{
+		return this->elements.begin();
+	}
+
+	ElementContainer::Container::iterator ElementContainer::end()
+	{
+		return this->elements.end();
+	}
+
+	ElementContainer::Container::const_iterator ElementContainer::begin() const
+	{
+		return this->elements.begin();
+	}
+
+	ElementContainer::Container::const_iterator ElementContainer::end() const
+	{
+		return this->elements.end();
+	}
+
+	// Document
+
 	std::string getMarkdownText(const std::string& line)
 	{
 		if (line.empty())
@@ -29,79 +123,16 @@ namespace Markdown
 		}
 
 		throw FileException("File " + path + " could not be opened");
-	}
+	}	
 
-	ParseResult Document::parseLine(const std::string& line, std::shared_ptr<Element> previous)
+	std::string Document::getHtml() const
 	{
-		if (ParseResult result = parseElement<HeadingElement>(line, previous))
-			return result;
-
-		if (ParseResult result = parseElement<ParagraphElement>(line, previous))
-			return result;
-
-		return parseElement<ParagraphElement>(line, previous);
-	}
-
-	void Document::parse(const std::string &content)
-	{
-        std::shared_ptr<Element> element = nullptr;
-        std::istringstream str(content);
-        for (std::string line; std::getline(str, line); )
-        {
-            //ParseResult result = element->parse(line, element);
-            ParseResult result = this->parseLine(line, element);
-
-			switch (result.code)
-			{
-				case ParseCode::Discard:
-					break;
-
-				case ParseCode::RequestMore:
-					element = result.element;
-					break;
-
-				case ParseCode::ElementComplete:
-					this->addElement(result.element);
-					element = nullptr;
-					break;
-
-				case ParseCode::RequestMoreAcceptPrevious:
-					this->addElement(element);
-					element = result.element;
-					break;
-
-				case ParseCode::ElementCompleteDiscardPrevious:
-					this->addElement(result.element);
-					element = nullptr;
-					break;
-
-				case ParseCode::Invalid:
-					assert(!"Invalid element");
-					break;
-			}
-        }
-
-		if (element)
-			this->addElement(element);
-	}
-
-	void Document::addElement(std::shared_ptr<Element> element)
-	{
-		this->elements.push_back(element);
-	}
-
-	size_t Document::elementsCount() const
-	{
-		return this->elements.size();
-	}
-
-	Document::ElementContainer::const_iterator Document::begin()
-	{
-		return this->elements.begin();
-	}
-
-	Document::ElementContainer::const_iterator Document::end()
-	{
-		return this->elements.end();
+		std::string result = "<!DOCTYPE html><html><head></head><body>";
+		for (const auto &el : *this)
+		{
+			result += el->getHtml();
+		}
+		result += "</body></html>";
+		return result;
 	}
 }

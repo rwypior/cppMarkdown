@@ -1,11 +1,11 @@
-#include "cppmarkdown.h"
+#include "paragraphelement.h"
 
 #include <vector>
 
 namespace Markdown
 {
 	ParagraphElement::ParagraphElement(const std::string& content)
-		: text(content)
+		: text(content, MarkdownStyle::makeHtml("<p>", "</p>"))
 	{
 	}
 

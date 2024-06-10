@@ -1,4 +1,4 @@
-#include "cppmarkdown.h"
+#include "document.h"
 
 #include <catch/catch.hpp>
 
