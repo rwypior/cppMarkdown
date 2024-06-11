@@ -95,10 +95,11 @@ namespace Markdown
         
         if (heading != Heading::Invalid)
         {
-            return ParseResult(
-                ParseCode::ElementComplete,
-                std::make_shared<HeadingElement>(heading, getHeadingText(line))
-            );
+            //return ParseResult(ParseCode::ElementComplete, std::make_shared<HeadingElement>(heading, getHeadingText(line)));
+            auto headingStyle = getDefaultStyle(heading);
+            this->heading = heading;
+            this->text = TextEntry(getHeadingText(line), headingStyle);
+            return ParseResult(ParseCode::ElementComplete);
         }
 
         if (previous && previous->getType() == Type::Paragraph)
@@ -109,10 +110,11 @@ namespace Markdown
             {
                 std::string text = std::static_pointer_cast<ParagraphElement>(previous)->text.getRawText();
 
-                return ParseResult(
-                    ParseCode::ElementCompleteDiscardPrevious,
-                    std::make_shared<HeadingElement>(heading, text)
-                );
+                //return ParseResult(ParseCode::ElementCompleteDiscardPrevious, std::make_shared<HeadingElement>(heading, text));
+                auto headingStyle = getDefaultStyle(heading);
+                this->heading = heading;
+                this->text = TextEntry(text, headingStyle);
+                return ParseResult(ParseCode::ElementCompleteDiscardPrevious);
             }
         }
 

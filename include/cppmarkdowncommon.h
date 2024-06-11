@@ -20,11 +20,11 @@ namespace Markdown
     enum class ParseCode
     {
         Discard,
-        RequestMore,
+        ParseNext,
         ElementComplete,
-        RequestMoreAcceptPrevious,
+        ParseNextAcceptPrevious,
         ElementCompleteDiscardPrevious,
-        ReturnToParent,
+        RequestMore,
         Invalid
     };
 
@@ -46,6 +46,7 @@ namespace Markdown
     {
         virtual Type getType() const = 0;
         virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) = 0;
+        virtual void finalize() {};
 
         virtual std::string getText() const { return ""; }
         virtual std::string getHtml() const { return ""; }
@@ -107,13 +108,6 @@ namespace Markdown
             return MarkdownStyle("", "", opening, closing);
         }
     };
-
-    template<typename T>
-    ParseResult parseElement(const std::string& line, std::shared_ptr<Element> previous)
-    {
-        auto element = std::make_shared<T>();
-        return element->parse(line, previous);
-    }
 }
 
 #endif

@@ -4,8 +4,13 @@
 
 namespace Markdown
 {
+	MarkdownStyle getParagraphStyle()
+	{
+		return MarkdownStyle::makeHtml("<p>", "</p>");
+	}
+
 	ParagraphElement::ParagraphElement(const std::string& content)
-		: text(content, MarkdownStyle::makeHtml("<p>", "</p>"))
+		: text(content, getParagraphStyle())
 	{
 	}
 
@@ -28,18 +33,16 @@ namespace Markdown
 				return ParseResult(ParseCode::Discard);
 			}
 
-			return ParseResult(
-				ParseCode::RequestMoreAcceptPrevious,
-				std::make_shared<ParagraphElement>(text)
-			);
+			this->text = TextEntry(text, getParagraphStyle());
+
+			//return ParseResult(ParseCode::RequestMoreAcceptPrevious, std::make_shared<ParagraphElement>(text));
+			return ParseResult(ParseCode::ParseNextAcceptPrevious);
 		}
 
-		return ParseResult(
-			ParseCode::RequestMore,
-			std::make_shared<ParagraphElement>(text)
-		);
-		
-		return ParseResult();
+		this->text = TextEntry(text, getParagraphStyle());
+
+		//return ParseResult(ParseCode::RequestMore, std::make_shared<ParagraphElement>(text));
+		return ParseResult(ParseCode::ParseNext);
 	}
 
 	std::string ParagraphElement::getText() const

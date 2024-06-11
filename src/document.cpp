@@ -12,15 +12,15 @@ namespace Markdown
 {
 	// Element container
 
-	ParseResult ElementContainer::parseLine(const std::string& line, std::shared_ptr<Element> previous)
+	ParseResult ElementContainer::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active)
 	{
-		if (ParseResult result = parseElement<BlockquoteElement>(line, previous))
+		if (ParseResult result = parseElement<BlockquoteElement>(line, previous, active))
 			return result;
 
-		if (ParseResult result = parseElement<HeadingElement>(line, previous))
+		if (ParseResult result = parseElement<HeadingElement>(line, previous, active))
 			return result;
 
-		if (ParseResult result = parseElement<ParagraphElement>(line, previous))
+		if (ParseResult result = parseElement<ParagraphElement>(line, previous, active))
 			return result;
 
 		return parseElement<ParagraphElement>(line, previous);
@@ -28,40 +28,62 @@ namespace Markdown
 
 	void ElementContainer::parse(const std::string& content)
 	{
+		std::shared_ptr<Element> activeElement = nullptr;
 		std::shared_ptr<Element> element = nullptr;
 		std::istringstream str(content);
 		for (std::string line; std::getline(str, line); )
 		{
-			ParseResult result = this->parseLine(line, element);
+			ParseResult result = this->parseLine(line, element, activeElement);
 
 			switch (result.code)
 			{
 			case ParseCode::Discard:
 				break;
 
-			case ParseCode::RequestMore:
+			case ParseCode::ParseNext:
+				activeElement = nullptr;
 				element = result.element;
 				break;
 
 			case ParseCode::ElementComplete:
+				activeElement = nullptr;
+				if (element)
+					this->addElement(element);
 				this->addElement(result.element);
 				element = nullptr;
 				break;
 
-			case ParseCode::RequestMoreAcceptPrevious:
+			case ParseCode::ParseNextAcceptPrevious:
+				activeElement = nullptr;
 				this->addElement(element);
 				element = result.element;
 				break;
 
 			case ParseCode::ElementCompleteDiscardPrevious:
+				activeElement = nullptr;
 				this->addElement(result.element);
 				element = nullptr;
+				break;
+
+			case ParseCode::RequestMore:
+				activeElement = result.element;
+				if (element)
+				{
+					this->addElement(element);
+					element = nullptr;
+				}
 				break;
 
 			case ParseCode::Invalid:
 				assert(!"Invalid element");
 				break;
 			}
+		}
+
+		if (activeElement)
+		{
+			activeElement->finalize();
+			this->addElement(activeElement);
 		}
 
 		if (element)

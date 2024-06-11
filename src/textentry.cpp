@@ -2,6 +2,7 @@
 
 #include <queue>
 #include <unordered_map>
+#include <regex>
 
 namespace Markdown
 {
@@ -69,6 +70,26 @@ namespace Markdown
 
 		while (pos != std::string::npos)
 		{
+			// TODO extract regex searching to another function
+			std::regex regex(R"r(.*(\[(.+?)\]\((.*?)\)).*)r");
+			std::smatch matches;
+			if (std::regex_match(std::next(source.begin(), pos), source.end(), matches, regex))
+			{
+				pos = matches.position(1);
+				std::string full = std::next(matches.begin(), 1)->str();
+				std::string linktext = std::next(matches.begin(), 2)->str();
+				std::string linkurl = std::next(matches.begin(), 3)->str();
+
+				std::string linktag = "<a href=\"" + linkurl + "\">";
+				Style linkStyle(linktag, "</a>");
+				styles.push_back(StyleSpan(pos + 1, pos + 1 + linktext.size(), pos, pos + full.size(), MarkdownStyle("", "", linkStyle), level));
+
+				pos += full.size();
+				if (pos >= source.size())
+					pos = std::string::npos;
+				continue;
+			}
+
 			// Find first style tag
 			StylePositionPair begin = findFirst(source, pos, stylemap);
 			if (begin.second == std::string::npos)

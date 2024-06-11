@@ -24,3 +24,14 @@ TEST_CASE("Default styling", "[textentry]")
 {
 	REQUIRE(Markdown::TextEntry("italic by default", Markdown::MarkdownStyle("*", "*", "<i>", "</i>")).getHtml() == "<i>italic by default</i>");
 }
+
+TEST_CASE("Links", "[textentry]")
+{
+	REQUIRE(Markdown::TextEntry("[Text](link)").getHtml() == "<a href=\"link\">Text</a>");
+}
+
+TEST_CASE("Mixed links", "[textentry]")
+{
+	Markdown::TextEntry asda("This is some [Text](link) blabla");
+	REQUIRE(Markdown::TextEntry("This is some [Text](link) blabla").getHtml() == "This is some <a href=\"link\">Text</a> blabla");
+}
