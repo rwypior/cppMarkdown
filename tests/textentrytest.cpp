@@ -1,6 +1,6 @@
 #include "textentry.h"
 
-#include <catch/catch.hpp>
+#include <catch2/catch.hpp>
 
 TEST_CASE("Text conversion", "[textentry]")
 {

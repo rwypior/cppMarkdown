@@ -1,7 +1,7 @@
 #include "headingelement.h"
 #include "document.h"
 
-#include <catch/catch.hpp>
+#include <catch2/catch.hpp>
 
 TEST_CASE("Parsing standard heading", "[heading]")
 {

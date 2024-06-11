@@ -7,14 +7,12 @@ endif()
 
 project ("cppMarkdownTest")
 
-find_path(CATCH2_INCLUDE_DIR NAMES catch.hpp PATHS {proper-location} OPTIONAL)
-
 add_executable(cppMarkdownTest)
 target_sources(cppMarkdownTest PRIVATE "main.cpp" "documenttest.cpp" "textentrytest.cpp" "paragraphtest.cpp" "headingtest.cpp" "blockquotetest.cpp")
 
 set_property(TARGET cppMarkdownTest PROPERTY CXX_STANDARD 14)
 
-target_include_directories(cppMarkdownTest PRIVATE "${CATCH2_INCLUDE_DIR}")
+target_include_directories(cppMarkdownTest PRIVATE "${CMAKE_SOURCE_DIR}/extern")
 target_include_directories(cppMarkdownTest PRIVATE "${CMAKE_SOURCE_DIR}/include")
 
 target_link_libraries(cppMarkdownTest PRIVATE cppMarkdown)

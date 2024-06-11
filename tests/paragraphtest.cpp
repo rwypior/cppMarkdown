@@ -1,6 +1,6 @@
 #include "paragraphelement.h"
 
-#include <catch/catch.hpp>
+#include <catch2/catch.hpp>
 
 TEST_CASE("Parsing regular text", "[paragraph]")
 {

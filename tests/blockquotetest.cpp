@@ -1,6 +1,6 @@
 #include "blockquoteelement.h"
 
-#include <catch/catch.hpp>
+#include <catch2/catch.hpp>
 
 TEST_CASE("Simple blockquote", "[blockquote]")
 {
