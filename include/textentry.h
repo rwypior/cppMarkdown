@@ -8,8 +8,9 @@
 
 namespace Markdown
 {
-    struct TextEntry
+    class TextEntry
     {
+    public:
         struct Span
         {
             std::string text;

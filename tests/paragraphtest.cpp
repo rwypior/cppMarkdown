@@ -4,22 +4,22 @@
 
 TEST_CASE("Parsing regular text", "[paragraph]")
 {
-	Markdown::ParagraphElement para("regular text");
-	REQUIRE(para.getText() == "regular text");
-	REQUIRE(para.getHtml() == "<p>regular text</p>");
+	Markdown::ParagraphElement el("regular text");
+	REQUIRE(el.getText() == "regular text");
+	REQUIRE(el.getHtml() == "<p>regular text</p>");
 
-	Markdown::ParagraphElement para2("");
-	REQUIRE(para2.getText() == "");
-	REQUIRE(para2.getHtml() == "");
+	Markdown::ParagraphElement el2("");
+	REQUIRE(el2.getText() == "");
+	REQUIRE(el2.getHtml() == "");
 }
 
 TEST_CASE("Parsing markdown", "[paragraph]")
 {
-	Markdown::ParagraphElement para("*italic text*");
-	REQUIRE(para.getText() == "italic text");
-	REQUIRE(para.getHtml() == "<i>italic text</i>");
+	Markdown::ParagraphElement el("*italic text*");
+	REQUIRE(el.getText() == "italic text");
+	REQUIRE(el.getHtml() == "<i>italic text</i>");
 
-	Markdown::ParagraphElement para2("text **bold** text");
-	REQUIRE(para2.getText() == "text bold text");
-	REQUIRE(para2.getHtml() == "<p>text <b>bold</b> text</p>");
+	Markdown::ParagraphElement el2("text **bold** text");
+	REQUIRE(el2.getText() == "text bold text");
+	REQUIRE(el2.getHtml() == "<p>text <b>bold</b> text</p>");
 }

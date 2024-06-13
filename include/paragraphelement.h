@@ -6,8 +6,9 @@
 
 namespace Markdown
 {
-    struct ParagraphElement : Element
+    class ParagraphElement : public Element
     {
+    public:
         TextEntry text;
 
         ParagraphElement(const std::string& content = "");

@@ -8,8 +8,9 @@
 
 namespace Markdown
 {
-    struct BlockquoteElement : Element
+    class BlockquoteElement : public Element
     {
+    public:
         ElementContainer elements;
 
         BlockquoteElement(const std::string& text = "");
@@ -20,6 +21,10 @@ namespace Markdown
 
         virtual std::string getText() const override;
         virtual std::string getHtml() const override;
+
+        static int getBlockquoteLevel(const std::string& line);
+        static std::string getBlockquoteText(const std::string& line);
+        static std::string getEligibleText(const std::string& text);
 
     private:
         int level = 0;

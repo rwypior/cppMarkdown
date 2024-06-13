@@ -42,8 +42,9 @@ namespace Markdown
 
     struct ParseResult;
 
-    struct Element
+    class Element
     {
+    public:
         virtual Type getType() const = 0;
         virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) = 0;
         virtual void finalize() {};

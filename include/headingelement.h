@@ -6,8 +6,9 @@
 
 namespace Markdown
 {
-    struct HeadingElement : Element
+    class HeadingElement : public Element
     {
+    public:
         enum class Heading
         {
             Heading1,
@@ -32,6 +33,9 @@ namespace Markdown
         virtual std::string getHtml() const override;
 
         static MarkdownStyle getDefaultStyle(Heading heading);
+        static std::string getHeadingText(const std::string& line);
+        static Heading parseHeadingHash(const std::string& line);
+        static Heading parseHeadingAlternate(const std::string& line);
     };
 }
 

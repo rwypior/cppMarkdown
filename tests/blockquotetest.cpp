@@ -4,21 +4,21 @@
 
 TEST_CASE("Simple blockquote", "[blockquote]")
 {
-	Markdown::BlockquoteElement para("Im a blockquote!");
-	REQUIRE(para.getText() == "Im a blockquote!");
-	REQUIRE(para.getHtml() == "<blockquote><p>Im a blockquote!</p></blockquote>");
+	Markdown::BlockquoteElement el("Im a blockquote!");
+	REQUIRE(el.getText() == "Im a blockquote!");
+	REQUIRE(el.getHtml() == "<blockquote><p>Im a blockquote!</p></blockquote>");
 }
 
 TEST_CASE("Multiline blockquote", "[blockquote]")
 {
-	Markdown::BlockquoteElement para(
+	Markdown::BlockquoteElement el(
 		"Im a blockquote!\n"
 		"With two lines!"
 	);
-	REQUIRE(para.getText() == 
+	REQUIRE(el.getText() ==
 		"Im a blockquote!\n"
 		"With two lines!");
-	REQUIRE(para.getHtml() == 
+	REQUIRE(el.getHtml() ==
 		"<blockquote><p>Im a blockquote!</p><p>With two lines!</p></blockquote>");
 }
 
@@ -46,14 +46,14 @@ TEST_CASE("Document parsing blockquote and paragraph", "[blockquote]")
 {
 	return;
 
-	Markdown::BlockquoteElement para(
+	Markdown::BlockquoteElement el(
 		"> Im a blockquote!\n"
 		"And regular paragraph"
 	);
-	REQUIRE(para.getText() ==
+	REQUIRE(el.getText() ==
 		"Im a blockquote!\n"
 		"And regular paragraph");
-	REQUIRE(para.getHtml() ==
+	REQUIRE(el.getHtml() ==
 		"<blockquote>Im a blockquote!</blockquote>\n"
 		"<p>And regular paragraph</p>"
 	);

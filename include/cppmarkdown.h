@@ -5,3 +5,4 @@
 #include "paragraphelement.h"
 #include "headingelement.h"
 #include "blockquoteelement.h"
+#include "listelement.h"

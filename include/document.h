@@ -13,7 +13,7 @@ namespace Markdown
         using Container = std::vector<std::shared_ptr<Element>>;
 
     public:
-        ParseResult parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr);
+        virtual ParseResult parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr);
         void parse(const std::string& content);
 
         void addElement(std::shared_ptr<Element> element);
@@ -27,7 +27,6 @@ namespace Markdown
     protected:
         Container elements;
 
-    private:
         template<typename T>
         ParseResult parseElement(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr)
         {
