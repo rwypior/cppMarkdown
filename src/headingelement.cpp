@@ -102,7 +102,7 @@ namespace Markdown
                 if (count >= headings.size())
                     return HeadingElement::Heading::Invalid;
             }
-            else if (c == ' ')
+            else if (c == ' ' && count > 0)
                 return headings[count - 1];
             else
                 return HeadingElement::Heading::Invalid;

@@ -3,6 +3,7 @@
 #include "paragraphelement.h"
 #include "headingelement.h"
 #include "blockquoteelement.h"
+#include "listelement.h"
 
 #include <fstream>
 #include <sstream>
@@ -14,6 +15,9 @@ namespace Markdown
 
 	ParseResult ElementContainer::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active)
 	{
+		if (ParseResult result = parseElement<ListElement>(line, previous, active))
+			return result;
+
 		if (ParseResult result = parseElement<BlockquoteElement>(line, previous, active))
 			return result;
 
@@ -41,12 +45,22 @@ namespace Markdown
 				break;
 
 			case ParseCode::ParseNext:
-				activeElement = nullptr;
+				if (activeElement)
+				{
+					activeElement->finalize();
+					this->addElement(activeElement);
+					activeElement = nullptr;
+				}
 				element = result.element;
 				break;
 
 			case ParseCode::ElementComplete:
-				activeElement = nullptr;
+				if (activeElement)
+				{
+					activeElement->finalize();
+					this->addElement(activeElement);
+					activeElement = nullptr;
+				}
 				if (element)
 					this->addElement(element);
 				this->addElement(result.element);
@@ -54,13 +68,23 @@ namespace Markdown
 				break;
 
 			case ParseCode::ParseNextAcceptPrevious:
-				activeElement = nullptr;
+				if (activeElement)
+				{
+					activeElement->finalize();
+					this->addElement(activeElement);
+					activeElement = nullptr;
+				}
 				this->addElement(element);
 				element = result.element;
 				break;
 
 			case ParseCode::ElementCompleteDiscardPrevious:
-				activeElement = nullptr;
+				if (activeElement)
+				{
+					activeElement->finalize();
+					this->addElement(activeElement);
+					activeElement = nullptr;
+				}
 				this->addElement(result.element);
 				element = nullptr;
 				break;
@@ -69,12 +93,14 @@ namespace Markdown
 				activeElement = result.element;
 				if (element)
 				{
+					activeElement->finalize();
 					this->addElement(element);
 					element = nullptr;
 				}
 				break;
 
 			case ParseCode::Invalid:
+				activeElement = nullptr;
 				assert(!"Invalid element");
 				break;
 			}
@@ -93,6 +119,16 @@ namespace Markdown
 	void ElementContainer::addElement(std::shared_ptr<Element> element)
 	{
 		this->elements.push_back(element);
+	}
+
+	bool ElementContainer::empty() const
+	{
+		return this->elements.empty();
+	}
+
+	ElementContainer::Container::value_type ElementContainer::back() const
+	{
+		return this->elements.back();
 	}
 
 	size_t ElementContainer::elementsCount() const
@@ -147,6 +183,20 @@ namespace Markdown
 		throw FileException("File " + path + " could not be opened");
 	}	
 
+	std::string Document::getText() const
+	{
+		std::string result;
+		for (const auto &el : *this)
+		{
+			result += el->getText() + "\n";
+		}
+		
+		if (!result.empty())
+			result.pop_back();
+
+		return result;
+	}
+	
 	std::string Document::getHtml() const
 	{
 		std::string result = "<!DOCTYPE html><html><head></head><body>";

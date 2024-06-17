@@ -35,7 +35,8 @@ namespace Markdown
         NewLine,
         Heading,
         Blockquote,
-        Link,
+        List,
+        ListElement,
         Image,
         Table
     };
@@ -109,6 +110,15 @@ namespace Markdown
             return MarkdownStyle("", "", opening, closing);
         }
     };
+
+    template<typename It>
+    bool isNumber(It first, It second)
+    {
+        for (; first != second; first++)
+            if (!std::isdigit(*first))
+                return false;
+        return true;
+    }
 }
 
 #endif

@@ -18,6 +18,8 @@ namespace Markdown
 
         void addElement(std::shared_ptr<Element> element);
 
+        bool empty() const;
+        Container::value_type back() const;
         size_t elementsCount() const;
         Container::iterator begin();
         Container::iterator end();
@@ -42,6 +44,7 @@ namespace Markdown
     public:
         static Document load(const std::string& path);
 
+        std::string getText() const;
         std::string getHtml() const;
     };
 }

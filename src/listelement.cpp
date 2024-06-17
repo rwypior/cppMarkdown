@@ -4,6 +4,71 @@
 
 namespace Markdown
 {
+    namespace
+    {
+        int getListLevel(const std::string& line)
+        {
+            auto pos = line.find_first_of('.');
+            if (pos == std::string::npos)
+                return -1;
+
+            for (auto it = line.begin(); it != std::next(line.begin(), pos); it++)
+            {
+                if (!std::isdigit(*it))
+                    return -1;
+            }
+
+            bool tabs = line.front() == '\t';
+            char search = tabs ? '\t' : ' ';
+            unsigned int count = std::count(line.begin(), std::next(line.begin(), pos), search);
+
+            return tabs ? count : count / 4;
+        }
+
+        int getListIndentation(const std::string& line)
+        {
+            if (line.empty())
+                return -1;
+
+            bool tabs = line.front() == '\t';
+            char search = tabs ? '\t' : ' ';
+            int first = line.find_first_not_of(search);
+            int count = std::count(line.begin(), std::next(line.begin(), first), search);
+
+            return tabs ? count : count / 4;
+        }
+
+        std::string getListText(const std::string& line)
+        {
+            auto pos = line.find_first_of('.');
+            if (pos == std::string::npos)
+                return "";
+            pos = line.find_first_not_of(' ', pos);
+            return line.substr(pos + 1);
+        }
+
+        std::string getListItemText(const std::string& line)
+        {
+            if (line.empty())
+                return line;
+
+            bool tabs = line.front() == '\t';
+            char search = tabs ? '\t' : ' ';
+            int posNonWhitespace = line.find_first_not_of(search);
+
+            auto pos = line.find_first_of('.');
+
+            if (pos != std::string::npos)
+            {
+                std::string num = line.substr(posNonWhitespace, pos);
+                if (isNumber(num.begin(), num.end()))
+                    return line.substr(pos + 1);
+            }
+
+            return line.substr(posNonWhitespace + 1);
+        }
+    }
+
     // Container
 
     ParseResult ListElementContainer::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active)
@@ -16,7 +81,7 @@ namespace Markdown
     ListItem::ListItem(const std::string& text)
     {
         if (!text.empty())
-            this->elements.parse(text);
+            this->elements.parse(getListItemText(text));
     }
 
     Type ListItem::getType() const
@@ -26,13 +91,39 @@ namespace Markdown
 
     ParseResult ListItem::parse(const std::string& line, std::shared_ptr<Element> previous)
     {
-        return ParseResult(ParseCode::Invalid);
+        int listLevel = getListLevel(line);
+        if (listLevel < 0)
+            return ParseResult(ParseCode::Invalid);
+
+        this->buffer += line + "\n";
+        return ParseResult(ParseCode::RequestMore);
+
+        //int listLevel = getListLevel(line);
+        //if (listLevel < 0)
+        //    return ParseResult(ParseCode::Invalid);
+
+        //if (previous && previous->getType() == Type::ListElement)
+        //{
+        //    auto previouslistel = std::static_pointer_cast<ListItem>(previous);
+        //    if (previouslistel->getLevel() == this->getLevel())
+        //    {
+        //        return ParseResult(ParseCode::ElementComplete);
+        //    }
+        //}
+
+        //this->text = getListText(line);
+        //return ParseResult(ParseCode::ParseNextAcceptPrevious);
     }
 
     void ListItem::finalize()
     {
-        //this->elements.parse(getEligibleText(this->buffer));
+        this->elements.parse(getListItemText(this->buffer));
         this->buffer.clear();
+    }
+
+    int ListItem::getLevel() const
+    {
+        return this->level;
     }
 
     std::string ListItem::getText() const
@@ -60,83 +151,75 @@ namespace Markdown
 
     // List element
 
-    bool isListElement(const std::string& line)
-    {
-        auto pos = line.find_first_of('.');
-        if (pos == std::string::npos)
-            return false;
-
-        for (auto it = line.begin(); it != std::next(line.begin(), pos); it++)
-        {
-            if (!std::isdigit(*it))
-                return false;
-        }
-
-        return true;
-    }
-
-    std::string getBlockquoteText(const std::string& line)
-    {
-        auto pos = line.find_first_of('.');
-        if (pos == std::string::npos)
-            return "";
-        return line.substr(pos + 1);
-    }
-
-    //std::string getEligibleText(const std::string& text)
-    //{
-    //    std::string result;
-    //    std::istringstream str(text);
-    //    for (std::string line; std::getline(str, line); )
-    //    {
-    //        int linelevel = getBlockquoteLevel(line);
-    //        if (linelevel != -1)
-    //        {
-    //            result += std::string(linelevel - 1, '>') + getBlockquoteText(line) + "\n";
-    //        }
-    //    }
-    //    return result;
-    //}
-
     ListElement::ListElement(const std::string& text)
     {
         if (!text.empty())
-            this->elements.parse(text);
+        {
+            std::istringstream str(text);
+            for (std::string line; std::getline(str, line); )
+            {
+                this->parse(line, nullptr);
+            }
+
+            if (!this->elements.empty())
+                this->elements.back()->finalize();
+        }
     }
 
     Type ListElement::getType() const
     {
-        return Type::Blockquote;
+        return Type::List;
     }
 
     ParseResult ListElement::parse(const std::string& line, std::shared_ptr<Element> previous)
     {
-        bool isList = isListElement(line);
+        int listLevel = getListLevel(line);
 
-        if (!isList)
-            return ParseResult(ParseCode::Invalid);
+        if (listLevel >= 0)
+        {
+            if (!this->elements.empty())
+                this->elements.back()->finalize();
 
-        auto el = std::make_shared<ListElement>();
+            auto item = std::make_shared<ListItem>();
+            item->buffer += line;
+            
+            this->elements.addElement(item);
+            return ParseResult(ParseCode::ParseNext);
+        }
 
-        this->buffer += line + "\n";
-        return ParseResult(ParseCode::RequestMore, el);
+        int indentation = getListIndentation(line);
+
+        if (indentation >= 0)
+        {
+            if (this->elements.empty())
+                return ParseResult(ParseCode::Invalid);
+
+            std::static_pointer_cast<ListItem>(this->elements.back())->buffer += line;
+            return ParseResult(ParseCode::ParseNext);
+        }
+
+        if (!this->elements.empty())
+            this->elements.back()->finalize();
+
+        return ParseResult(ParseCode::Invalid);
     }
 
     void ListElement::finalize()
     {
-        if (!this->buffer.empty())
-        {
-            this->elements.parse(this->buffer);
-            this->buffer.clear();
-        }
+        //if (!this->buffer.empty())
+        //{
+        //    this->elements.parse(this->buffer);
+        //    this->buffer.clear();
+        //}
     }
 
     std::string ListElement::getText() const
     {
         std::string str;
+        unsigned int number = 1;
         for (const auto& element : this->elements)
         {
-            str += element->getText() + "\n";
+            str += std::to_string(number++) + ". " + element->getText() + "\n";
         }
         if (!str.empty())
             str.pop_back();

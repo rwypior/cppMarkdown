@@ -16,6 +16,7 @@ namespace Markdown
 
     class ListItem : public Element
     {
+        friend class ListElement;
     public:
         ElementContainer elements;
 
@@ -25,10 +26,14 @@ namespace Markdown
         virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) override;
         virtual void finalize() override;
 
+        int getLevel() const;
+
         virtual std::string getText() const override;
         virtual std::string getHtml() const override;
 
     private:
+        int level = 0;
+        std::string text;
         std::string buffer;
     };
 
@@ -47,7 +52,8 @@ namespace Markdown
         virtual std::string getHtml() const override;
 
     private:
-        std::string buffer;
+        int level = 0;
+        //std::string buffer;
     };
 }
 
