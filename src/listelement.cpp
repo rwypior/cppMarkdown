@@ -48,7 +48,7 @@ namespace Markdown
             return line.substr(pos + 1);
         }
 
-        std::string getListItemText(const std::string& line)
+        std::string getListItemLineText(const std::string& line)
         {
             if (line.empty())
                 return line;
@@ -66,7 +66,26 @@ namespace Markdown
                     return line.substr(pos + 1);
             }
 
-            return line.substr(posNonWhitespace + 1);
+            return line.substr(posNonWhitespace);
+        }
+
+        std::string getListItemText(const std::string& line)
+        {
+            if (line.empty())
+                return line;
+
+            std::string result;
+
+            std::stringstream str(line);
+            for (std::string subLine; std::getline(str, subLine); )
+            {
+                result += getListItemLineText(subLine) + "\n";
+            }
+
+            if (!result.empty())
+                result.pop_back();
+
+            return result;
         }
     }
 
@@ -114,9 +133,8 @@ namespace Markdown
 
     void ListItem::fixParagraphs()
     {
-        //for (auto& el : this->elements)
         Type previousType = Type::Blank;
-        std::vector<ElementContainer::Container::iterator> lineBreaks;
+        std::vector<size_t> lineBreaks;
         for (auto it = this->elements.begin(); it != this->elements.end(); it++)
         {
             auto& el = *it;
@@ -124,7 +142,7 @@ namespace Markdown
                 el->options |= ElementOptions::Raw;
 
             if (previousType == el->getType() && previousType == Type::Paragraph)
-                lineBreaks.push_back(it);
+                lineBreaks.push_back(it - this->elements.begin());
 
             previousType = el->getType();
         }
@@ -132,7 +150,7 @@ namespace Markdown
         for (auto it = lineBreaks.rbegin(); it != lineBreaks.rend(); it++)
         {
             auto lineBreak = *it;
-            this->elements.addElement(std::make_shared<LineBreakElement>(), lineBreak);
+            this->elements.addElement(std::make_shared<LineBreakElement>(), std::next(this->elements.begin(), lineBreak));
         }
     }
 
@@ -141,8 +159,12 @@ namespace Markdown
         std::string str;
         for (const auto& element : this->elements)
         {
+            if (element->getType() == Type::LineBreak)
+                continue;
+
             str += element->getText() + "\n";
         }
+
         if (!str.empty())
             str.pop_back();
         return str;
@@ -194,11 +216,12 @@ namespace Markdown
             item->buffer += line;
             
             this->elements.addElement(item);
-            //return ParseResult(ParseCode::ParseNext);
             return ParseResult(ParseCode::RequestMore);
         }
 
         int indentation = getListIndentation(line);
+
+        // TODO - match the indentation to the list level
 
         if (indentation >= 0)
         {
@@ -206,7 +229,7 @@ namespace Markdown
                 return ParseResult(ParseCode::Invalid);
 
             std::static_pointer_cast<ListItem>(this->elements.back())->buffer += "\n" + line;
-            return ParseResult(ParseCode::ParseNext);
+            return ParseResult(ParseCode::RequestMore);
         }
 
         if (!this->elements.empty())

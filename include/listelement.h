@@ -32,6 +32,7 @@ namespace Markdown
         virtual std::string getHtml() const override;
 
     protected:
+        // Remove tags from paragraphs and separate paragraphs with line breaks
         void fixParagraphs();
 
     private:
