@@ -208,19 +208,21 @@ namespace Markdown
 		return text;
 	}
 
-	std::string TextEntry::getHtml() const
+	std::string TextEntry::getHtml(HtmlOptions flags) const
 	{
 		std::deque<std::pair<size_t, Style>> tags;
+
+		bool skipDefaultTags = flags & HtmlOptions::SkipDefaultTags;
 				
 		std::string html;
 		for (const Span& span : this->spans)
 		{
-			if (tags.empty() || span.level > tags.back().first)
+			if (!skipDefaultTags && (tags.empty() || span.level > tags.back().first))
 			{
 				tags.push_back({ span.level, span.style.style });
 				html += span.style.style.openingTag;
 			}
-			else
+			else if (!tags.empty())
 			{
 				Style closingTag = tags.back().second;
 				tags.pop_back();
@@ -230,7 +232,7 @@ namespace Markdown
 			html += span.text;
 		}
 
-		if (!tags.empty())
+		if (!skipDefaultTags && !tags.empty())
 		{
 			Style closingTag = tags.back().second;
 			html += closingTag.closingTag;

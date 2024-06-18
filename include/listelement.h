@@ -31,6 +31,9 @@ namespace Markdown
         virtual std::string getText() const override;
         virtual std::string getHtml() const override;
 
+    protected:
+        void fixParagraphs();
+
     private:
         int level = 0;
         std::string text;

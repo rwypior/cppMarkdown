@@ -11,6 +11,13 @@ namespace Markdown
     class TextEntry
     {
     public:
+        enum class HtmlOptions
+        {
+            Normal = 0x00,
+            SkipDefaultTags = 0x01
+        };
+
+    public:
         struct Span
         {
             std::string text;
@@ -29,11 +36,13 @@ namespace Markdown
         TextEntry(const std::string& content, MarkdownStyle defaultStyle = MarkdownStyle());
 
         std::string getText() const;
-        std::string getHtml() const;
+        std::string getHtml(HtmlOptions flags = HtmlOptions::Normal) const;
         std::string getRawText() const;
 
         bool empty() const;
     };
+
+    DEFINE_BITFIELD(TextEntry::HtmlOptions);
 }
 
 #endif

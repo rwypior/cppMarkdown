@@ -17,6 +17,7 @@ namespace Markdown
         void parse(const std::string& content);
 
         void addElement(std::shared_ptr<Element> element);
+        void addElement(std::shared_ptr<Element> element, Container::const_iterator it);
 
         bool empty() const;
         Container::value_type back() const;

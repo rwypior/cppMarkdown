@@ -1,19 +1,15 @@
-#ifndef _h_cppmarkdownparagraphelement
-#define _h_cppmarkdownparagraphelement
+#ifndef _h_cppmarkdownlinebreakelement
+#define _h_cppmarkdownlinebreakelement
 
 #include "cppmarkdowncommon.h"
 #include "textentry.h"
 
 namespace Markdown
 {
-    class ParagraphElement : public Element
+    class LineBreakElement : public Element
     {
     public:
-        TextEntry text;
-
-        ParagraphElement(const std::string& content = "");
-
-        MarkdownStyle getParagraphStyle() const;
+        LineBreakElement() = default;
 
         virtual Type getType() const override;
         virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) override;

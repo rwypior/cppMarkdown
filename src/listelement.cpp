@@ -1,4 +1,5 @@
 #include "listelement.h"
+#include "linebreakelement.h"
 
 #include <sstream>
 
@@ -97,33 +98,42 @@ namespace Markdown
 
         this->buffer += line + "\n";
         return ParseResult(ParseCode::RequestMore);
-
-        //int listLevel = getListLevel(line);
-        //if (listLevel < 0)
-        //    return ParseResult(ParseCode::Invalid);
-
-        //if (previous && previous->getType() == Type::ListElement)
-        //{
-        //    auto previouslistel = std::static_pointer_cast<ListItem>(previous);
-        //    if (previouslistel->getLevel() == this->getLevel())
-        //    {
-        //        return ParseResult(ParseCode::ElementComplete);
-        //    }
-        //}
-
-        //this->text = getListText(line);
-        //return ParseResult(ParseCode::ParseNextAcceptPrevious);
     }
 
     void ListItem::finalize()
     {
         this->elements.parse(getListItemText(this->buffer));
+        this->fixParagraphs();
         this->buffer.clear();
     }
 
     int ListItem::getLevel() const
     {
         return this->level;
+    }
+
+    void ListItem::fixParagraphs()
+    {
+        //for (auto& el : this->elements)
+        Type previousType = Type::Blank;
+        std::vector<ElementContainer::Container::iterator> lineBreaks;
+        for (auto it = this->elements.begin(); it != this->elements.end(); it++)
+        {
+            auto& el = *it;
+            if (el->getType() == Type::Paragraph)
+                el->options |= ElementOptions::Raw;
+
+            if (previousType == el->getType() && previousType == Type::Paragraph)
+                lineBreaks.push_back(it);
+
+            previousType = el->getType();
+        }
+
+        for (auto it = lineBreaks.rbegin(); it != lineBreaks.rend(); it++)
+        {
+            auto lineBreak = *it;
+            this->elements.addElement(std::make_shared<LineBreakElement>(), lineBreak);
+        }
     }
 
     std::string ListItem::getText() const
@@ -140,12 +150,12 @@ namespace Markdown
 
     std::string ListItem::getHtml() const
     {
-        std::string html = "<ol>";
+        std::string html = "<li>";
         for (const auto& element : this->elements)
         {
             html += element->getHtml();
         }
-        html += "</ol>";
+        html += "</li>";
         return html;
     }
 
@@ -184,7 +194,8 @@ namespace Markdown
             item->buffer += line;
             
             this->elements.addElement(item);
-            return ParseResult(ParseCode::ParseNext);
+            //return ParseResult(ParseCode::ParseNext);
+            return ParseResult(ParseCode::RequestMore);
         }
 
         int indentation = getListIndentation(line);
@@ -194,7 +205,7 @@ namespace Markdown
             if (this->elements.empty())
                 return ParseResult(ParseCode::Invalid);
 
-            std::static_pointer_cast<ListItem>(this->elements.back())->buffer += line;
+            std::static_pointer_cast<ListItem>(this->elements.back())->buffer += "\n" + line;
             return ParseResult(ParseCode::ParseNext);
         }
 
@@ -206,11 +217,8 @@ namespace Markdown
 
     void ListElement::finalize()
     {
-        //if (!this->buffer.empty())
-        //{
-        //    this->elements.parse(this->buffer);
-        //    this->buffer.clear();
-        //}
+        if (!this->elements.empty())
+            this->elements.back()->finalize();
     }
 
     std::string ListElement::getText() const

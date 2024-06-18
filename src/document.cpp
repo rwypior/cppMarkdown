@@ -121,6 +121,11 @@ namespace Markdown
 		this->elements.push_back(element);
 	}
 
+	void ElementContainer::addElement(std::shared_ptr<Element> element, Container::const_iterator it)
+	{
+		this->elements.insert(it, element);
+	}
+
 	bool ElementContainer::empty() const
 	{
 		return this->elements.empty();

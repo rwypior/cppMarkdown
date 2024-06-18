@@ -1,1 +1,7 @@
-target_sources(cppMarkdown PUBLIC PRIVATE	"document.cpp"  "headingelement.cpp" "paragraphelement.cpp" "textentry.cpp" "blockquoteelement.cpp" "../include/cppmarkdowncommon.h" "../include/textentry.h" "../include/paragraphelement.h" "../include/headingelement.h" "../include/blockquoteelement.h" "../include/document.h"   "../include/listelement.h" "listelement.cpp")
+target_sources(cppMarkdown PUBLIC PRIVATE	
+	"document.cpp"  "headingelement.cpp" "paragraphelement.cpp" "textentry.cpp" 
+	"blockquoteelement.cpp" "listelement.cpp" "linebreakelement.cpp"
+	"../include/cppmarkdowncommon.h" "../include/textentry.h" "../include/paragraphelement.h" 
+	"../include/headingelement.h" "../include/blockquoteelement.h" "../include/document.h"   
+	"../include/listelement.h" "../include/linebreakelement.h"
+)
