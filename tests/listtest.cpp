@@ -13,6 +13,17 @@ TEST_CASE("Simple list", "[list]")
 	REQUIRE(el.getHtml() == R"list(<ol><li>First</li><li>Second</li><li>Third</li></ol>)list");
 }
 
+TEST_CASE("Simple unordered list", "[list]")
+{
+	Markdown::ListElement el(R"list(* First
+* Second
+* Third)list");
+	REQUIRE(el.getText() == R"list(- First
+- Second
+- Third)list");
+	REQUIRE(el.getHtml() == R"list(<ul><li>First</li><li>Second</li><li>Third</li></ul>)list");
+}
+
 TEST_CASE("List with paragraph", "[list]")
 {
 	Markdown::ListElement el(R"list(1. First
@@ -101,7 +112,7 @@ Paragraph)list");
 	"<li>Nested 1</li>"
 	"<li>Nested 2</li>"
 	"<li>Nested 3</li>"
-"</ol></li></ol>");
+"</ol>Paragraph</li></ol>");
 }
 
 TEST_CASE("Simple list in document", "[list]")

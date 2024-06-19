@@ -52,7 +52,7 @@ namespace Markdown
         Heading,
         Blockquote,
         List,
-        ListElement,
+        ListItem,
         Image,
         Table,
         LineBreak
@@ -70,10 +70,22 @@ namespace Markdown
     {
     public:
         ElementOptions options = ElementOptions::Normal;
+        Element* parent = nullptr;
 
         virtual Type getType() const = 0;
         virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) = 0;
         virtual void finalize() {};
+        unsigned int getLevel() const
+        {
+            unsigned int level = 0;
+            Element* p = this->parent;
+            while (p)
+            {
+                level++;
+                p = p->parent;
+            }
+            return level;
+        }
 
         virtual std::string getText() const { return ""; }
         virtual std::string getHtml() const { return ""; }

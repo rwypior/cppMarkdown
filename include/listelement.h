@@ -26,8 +26,6 @@ namespace Markdown
         virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) override;
         virtual void finalize() override;
 
-        int getLevel() const;
-
         virtual std::string getText() const override;
         virtual std::string getHtml() const override;
 
@@ -36,7 +34,6 @@ namespace Markdown
         void fixParagraphs();
 
     private:
-        int level = 0;
         std::string text;
         std::string buffer;
     };
@@ -44,7 +41,22 @@ namespace Markdown
     class ListElement : public Element
     {
     public:
+        enum class ListType
+        {
+            Invalid,
+            Ordered,
+            Unordered
+        };
+
+        struct ListMarker
+        {
+            int level = -1;
+            ListType type = ListType::Invalid;
+        };
+
+    public:
         ListElementContainer elements;
+        ListType listType;
 
         ListElement(const std::string& text = "");
 
@@ -55,9 +67,12 @@ namespace Markdown
         virtual std::string getText() const override;
         virtual std::string getHtml() const override;
 
-    private:
-        int level = 0;
-        //std::string buffer;
+        static size_t findUnorderedMarker(const std::string &text);
+        static ListMarker getListLevel(const std::string& line);
+        static int getListIndentation(const std::string& line);
+        static std::string getListText(const std::string& line);
+        static std::string getListItemLineText(const std::string& line);
+        static std::string getListItemText(const std::string& line);
     };
 }
 
