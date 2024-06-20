@@ -28,13 +28,10 @@ namespace Markdown
 
 		if (previous && previous->getType() == Type::Paragraph)
 		{
-			if (
-				text.empty() &&
-				std::static_pointer_cast<ParagraphElement>(previous)->text.empty()
-			)
-			{
+			auto previousParagraph = std::static_pointer_cast<ParagraphElement>(previous);
+
+			if (text.empty() && previousParagraph->text.empty())
 				return ParseResult(ParseCode::Discard);
-			}
 
 			this->text = TextEntry(text, getParagraphStyle());
 

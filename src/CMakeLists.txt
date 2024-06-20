@@ -4,4 +4,4 @@ target_sources(cppMarkdown PUBLIC PRIVATE
 	"../include/cppmarkdowncommon.h" "../include/textentry.h" "../include/paragraphelement.h" 
 	"../include/headingelement.h" "../include/blockquoteelement.h" "../include/document.h"   
 	"../include/listelement.h" "../include/linebreakelement.h"
- "../include/codeelement.h" "codeelement.cpp")
+ "../include/codeelement.h" "codeelement.cpp" "../include/lineelement.h" "lineelement.cpp")

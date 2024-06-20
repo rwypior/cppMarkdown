@@ -15,6 +15,9 @@ namespace Markdown
 
     ParseResult CodeElement::parse(const std::string& line, std::shared_ptr<Element> previous)
     {
+        if (line.empty())
+            return ParseResult(ParseCode::Invalid);
+
         size_t pos = 0;
         while (pos <= line.size())
         {

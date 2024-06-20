@@ -56,7 +56,8 @@ namespace Markdown
         Image,
         Table,
         LineBreak,
-        Code
+        Code,
+        Line
     };
 
     enum class ElementOptions
@@ -161,6 +162,48 @@ namespace Markdown
             if (!std::isdigit(*first))
                 return false;
         return true;
+    }
+
+    inline void ltrim(std::string& text)
+    {
+        text.erase(text.begin(), std::find_if(text.begin(), text.end(), [](char ch) {
+            return !std::isspace(ch);
+        }));
+    }
+
+    inline std::string ltrim(const std::string &text)
+    {
+        std::string result = text;
+        ltrim(result);
+        return result;
+    }
+
+    inline void rtrim(std::string& text)
+    {
+        text.erase(std::find_if(text.rbegin(), text.rend(), [](char ch) {
+            return !std::isspace(ch);
+        }).base(), text.end());
+    }
+
+    inline std::string rtrim(const std::string& text)
+    {
+        std::string result = text;
+        rtrim(result);
+        return result;
+    }
+
+    inline void trim(std::string& text)
+    {
+        ltrim(text);
+        rtrim(text);
+    }
+
+    inline std::string trim(const std::string& text)
+    {
+        std::string result = text;
+        ltrim(result);
+        rtrim(result);
+        return result;
     }
 }
 

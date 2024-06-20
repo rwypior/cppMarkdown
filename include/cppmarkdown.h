@@ -6,3 +6,5 @@
 #include "headingelement.h"
 #include "blockquoteelement.h"
 #include "listelement.h"
+#include "codeelement.h"
+#include "lineelement.h"
