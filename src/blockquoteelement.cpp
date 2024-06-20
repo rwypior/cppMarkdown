@@ -26,7 +26,6 @@ namespace Markdown
         el->level = level;
 
         this->buffer += line + "\n";
-        //return ParseResult(ParseCode::RequestMore, el);
         return ParseResult(ParseCode::RequestMore);
     }
 

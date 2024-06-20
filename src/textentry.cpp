@@ -60,8 +60,10 @@ namespace Markdown
 			{ "**_", "_**", { "<b><i>", "</i></b>" } },
 			{ "**", "**", { "<b>", "</b>" } },
 			{ "__", "__", { "<b>", "</b>" } },
+			{ "``", "``", { "<code>", "</code>" }, false },
 			{ "*", "*", { "<i>", "</i>" } },
 			{ "_", "_", { "<i>", "</i>" } },
+			{ "`", "`", { "<code>", "</code>" }, false },
 		};
 
 		std::vector<StyleSpan> styles;
@@ -136,8 +138,8 @@ namespace Markdown
 			for (StyleSpan& sub : subStyles)
 			{
 				size_t tagSize = span.tagTo - span.to;
-				mergeQueue.push_back( StyleSpan(
-					span.from + sub.from, span.from + sub.to, 
+				mergeQueue.push_back(StyleSpan(
+					span.from + sub.from, span.from + sub.to,
 					span.tagFrom + sub.tagFrom, span.from + sub.tagTo + tagSize,
 					sub.style, sub.level));
 			}

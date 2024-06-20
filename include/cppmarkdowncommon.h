@@ -55,7 +55,8 @@ namespace Markdown
         ListItem,
         Image,
         Table,
-        LineBreak
+        LineBreak,
+        Code
     };
 
     enum class ElementOptions
@@ -129,19 +130,22 @@ namespace Markdown
         std::string markdownOpening = "";
         std::string markdownClosing = "";
         Style style;
+        bool acceptsSubstyles = true;
 
         MarkdownStyle() = default;
 
-        MarkdownStyle(const std::string& markdownOpening, const std::string& markdownClosing, const Style& style)
+        MarkdownStyle(const std::string& markdownOpening, const std::string& markdownClosing, const Style& style, bool acceptsSubstyles = true)
             : markdownOpening(markdownOpening)
             , markdownClosing(markdownClosing)
             , style(style)
+            , acceptsSubstyles(acceptsSubstyles)
         { }
 
-        MarkdownStyle(const std::string& markdownOpening, const std::string& markdownClosing, const std::string& htmlOpening, const std::string& htmlClosing)
+        MarkdownStyle(const std::string& markdownOpening, const std::string& markdownClosing, const std::string& htmlOpening, const std::string& htmlClosing, bool acceptsSubstyles = true)
             : markdownOpening(markdownOpening)
             , markdownClosing(markdownClosing)
             , style(htmlOpening, htmlClosing)
+            , acceptsSubstyles(acceptsSubstyles)
         { }
 
         static MarkdownStyle makeHtml(const std::string& opening, const std::string& closing)

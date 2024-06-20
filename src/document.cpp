@@ -4,6 +4,7 @@
 #include "headingelement.h"
 #include "blockquoteelement.h"
 #include "listelement.h"
+#include "codeelement.h"
 
 #include <fstream>
 #include <sstream>
@@ -16,6 +17,9 @@ namespace Markdown
 	ParseResult ElementContainer::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active)
 	{
 		if (ParseResult result = parseElement<ListElement>(line, previous, active))
+			return result;
+		
+		if (ParseResult result = parseElement<CodeElement>(line, previous, active))
 			return result;
 
 		if (ParseResult result = parseElement<BlockquoteElement>(line, previous, active))

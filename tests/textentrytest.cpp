@@ -35,3 +35,10 @@ TEST_CASE("Mixed links", "[textentry]")
 	Markdown::TextEntry asda("This is some [Text](link) blabla");
 	REQUIRE(Markdown::TextEntry("This is some [Text](link) blabla").getHtml() == "This is some <a href=\"link\">Text</a> blabla");
 }
+
+TEST_CASE("Inline links", "[textentry]")
+{
+	REQUIRE(Markdown::TextEntry("blabla `some code` bla").getHtml() == "blabla <code>some code</code> bla");
+	REQUIRE(Markdown::TextEntry("blabla ``some code`` bla").getHtml() == "blabla <code>some code</code> bla");
+	REQUIRE(Markdown::TextEntry("blabla ``some `bla` code`` bla").getHtml() == "blabla <code>some `bla` code</code> bla");
+}
