@@ -6,40 +6,67 @@
 
 namespace Markdown
 {
-	using StyleContainer = std::vector<MarkdownStyle>;
-	using StylePositionPair = std::pair<const MarkdownStyle*, size_t>;
+	using StyleContainer = std::vector<std::shared_ptr<MarkdownStyle>>;
+	//using StylePositionPair = std::pair<std::shared_ptr<MarkdownStyle>, size_t>;
 
-	struct StyleSpan
+	struct StyleSearchResult
 	{
-		size_t from;
-		size_t to;
-		size_t tagFrom;
-		size_t tagTo;
-		MarkdownStyle style;
-		size_t level;
-
-		StyleSpan(size_t from, size_t to, size_t tagFrom, size_t tagTo, const MarkdownStyle& style, size_t level)
-			: from(from)
-			, to(to)
-			, tagFrom(tagFrom)
-			, tagTo(tagTo)
-			, style(style)
-			, level(level)
-		{ }
+		std::shared_ptr<MarkdownStyle> style;
+		SpanPositionPair spanPosition;
 	};
 
-	StylePositionPair findFirst(const std::string& source, size_t pos, const StyleContainer& stylemap, bool findClosing = false)
-	{
-		StylePositionPair result{ nullptr, std::string::npos };
+	// Style
 
-		for (const MarkdownStyle& t : stylemap)
+	SpanPositionPair MarkdownStyle::findIn(const std::string& str, size_t offset, SearchMode mode, size_t level) const
+	{
+		size_t pos = str.find(mode == SearchMode::Closing ? this->markdownClosing : this->markdownOpening, offset);
+		StyleSpan span(offset, std::string::npos, pos, std::string::npos, *this, level);
+		return { std::make_shared<StyleSpan>(span), pos };
+	}
+
+	// Link style
+
+	SpanPositionPair LinkStyle::findIn(const std::string& str, size_t offset, SearchMode mode, size_t level) const
+	{
+		if (mode == SearchMode::Closing)
+			return { nullptr, str.find(')', offset) };
+
+		std::regex regex(R"r(.*(\[(.+?)\]\((.*?)\)).*)r");
+		std::smatch matches;
+		if (std::regex_match(std::next(str.begin(), offset), str.end(), matches, regex))
 		{
-			std::string tofind = findClosing ? t.markdownClosing : t.markdownOpening;
-			size_t idx = source.find(tofind, pos);
-			if (idx != std::string::npos && idx < result.second)
+			size_t pos = matches.position(1);
+			std::string full = std::next(matches.begin(), 1)->str();
+			std::string linktext = std::next(matches.begin(), 2)->str();
+			std::string linkurl = std::next(matches.begin(), 3)->str();
+
+			std::string linktag = "<a href=\"" + linkurl + "\">";
+			Style linkStyle(linktag, "</a>");
+			//styles.push_back(StyleSpan(pos + 1, pos + 1 + linktext.size(), pos, pos + full.size(), MarkdownStyle("", "", linkStyle), level));
+			//styles.push_back(StyleSpan(pos + 1, pos + 1 + linktext.size(), pos, pos + full.size(), MarkdownStyle("", "", linkStyle), level));
+
+			StyleSpan span(offset, std::string::npos, pos, std::string::npos, *this, level);
+
+			return { std::make_shared<StyleSpan>(span), pos };
+		}
+
+		return { nullptr, std::string::npos };
+	}
+
+	// Util
+
+	StyleSearchResult findFirst(const std::string& source, size_t pos, const StyleContainer& stylemap, size_t level, MarkdownStyle::SearchMode mode = MarkdownStyle::SearchMode::Opening)
+	{
+		StyleSearchResult result;
+
+		for (const auto& t : stylemap)
+		{
+			SpanPositionPair res = t->findIn(source, pos, mode, level);
+			size_t idx = res.position;
+			if (idx != std::string::npos && idx < result.spanPosition.position)
 			{
-				result.first = &t;
-				result.second = idx;
+				result.style = t;
+				result.spanPosition = res;
 
 				if (idx == 0)
 					break;
@@ -49,21 +76,24 @@ namespace Markdown
 		return result;
 	}
 
+	// Text entry
+
 	std::vector<StyleSpan> findStyle(const std::string& source, MarkdownStyle defaultStyle = MarkdownStyle(), size_t level = 0)
 	{
 		// TODO - gotta split this function
 
 		StyleContainer stylemap{
-			{ "***", "***", { "<b><i>", "</i></b>" } },
-			{ "___", "___", { "<b><i>", "</i></b>" } },
-			{ "__*", "*__", { "<b><i>", "</i></b>" } },
-			{ "**_", "_**", { "<b><i>", "</i></b>" } },
-			{ "**", "**", { "<b>", "</b>" } },
-			{ "__", "__", { "<b>", "</b>" } },
-			{ "``", "``", { "<code>", "</code>" }, false },
-			{ "*", "*", { "<i>", "</i>" } },
-			{ "_", "_", { "<i>", "</i>" } },
-			{ "`", "`", { "<code>", "</code>" }, false },
+			std::make_shared<MarkdownStyle>("***", "***", Style("<b><i>", "</i></b>")),
+			std::make_shared<MarkdownStyle>("___", "___", Style("<b><i>", "</i></b>")),
+			std::make_shared<MarkdownStyle>("__*", "*__", Style("<b><i>", "</i></b>")),
+			std::make_shared<MarkdownStyle>("**_", "_**", Style("<b><i>", "</i></b>")),
+			std::make_shared<MarkdownStyle>("**", "**", Style("<b>", "</b>")),
+			std::make_shared<MarkdownStyle>("__", "__", Style("<b>", "</b>")),
+			std::make_shared<MarkdownStyle>("``", "``", Style("<code>", "</code>"), false, std::vector<std::string>({"`"})),
+			std::make_shared<MarkdownStyle>("*", "*", Style("<i>", "</i>")),
+			std::make_shared<MarkdownStyle>("_", "_", Style("<i>", "</i>")),
+			std::make_shared<MarkdownStyle>("`", "`", Style("<code>", "</code>"), false),
+			std::make_shared<LinkStyle>(),
 		};
 
 		std::vector<StyleSpan> styles;
@@ -73,36 +103,42 @@ namespace Markdown
 		while (pos != std::string::npos)
 		{
 			// TODO extract regex searching to another function
-			std::regex regex(R"r(.*(\[(.+?)\]\((.*?)\)).*)r");
-			std::smatch matches;
-			if (std::regex_match(std::next(source.begin(), pos), source.end(), matches, regex))
-			{
-				pos = matches.position(1);
-				std::string full = std::next(matches.begin(), 1)->str();
-				std::string linktext = std::next(matches.begin(), 2)->str();
-				std::string linkurl = std::next(matches.begin(), 3)->str();
+			//std::regex regex(R"r(.*(\[(.+?)\]\((.*?)\)).*)r");
+			//std::smatch matches;
+			//if (std::regex_match(std::next(source.begin(), pos), source.end(), matches, regex))
+			//{
+			//	pos = matches.position(1);
+			//	std::string full = std::next(matches.begin(), 1)->str();
+			//	std::string linktext = std::next(matches.begin(), 2)->str();
+			//	std::string linkurl = std::next(matches.begin(), 3)->str();
 
-				std::string linktag = "<a href=\"" + linkurl + "\">";
-				Style linkStyle(linktag, "</a>");
-				styles.push_back(StyleSpan(pos + 1, pos + 1 + linktext.size(), pos, pos + full.size(), MarkdownStyle("", "", linkStyle), level));
+			//	std::string linktag = "<a href=\"" + linkurl + "\">";
+			//	Style linkStyle(linktag, "</a>");
+			//	//styles.push_back(StyleSpan(pos + 1, pos + 1 + linktext.size(), pos, pos + full.size(), MarkdownStyle("", "", linkStyle), level));
+			//	styles.push_back(StyleSpan(pos + 1, pos + 1 + linktext.size(), pos, pos + full.size(), MarkdownStyle("", "", linkStyle), level));
 
-				pos += full.size();
-				if (pos >= source.size())
-					pos = std::string::npos;
-				continue;
-			}
+			//	pos += full.size();
+			//	if (pos >= source.size())
+			//		pos = std::string::npos;
+			//	continue;
+			//}
 
 			// Find first style tag
-			StylePositionPair begin = findFirst(source, pos, stylemap);
-			if (begin.second == std::string::npos)
+			StyleSearchResult begin = findFirst(source, pos, stylemap, level);
+			if (begin.spanPosition.position == std::string::npos)
 				break;
 
 			// Add the style tag to the result vector
-			const MarkdownStyle *tag = begin.first;
+			const auto tag = begin.style;
 			std::string ending = tag->markdownClosing;
-			pos = begin.second + tag->markdownOpening.size();
+			pos = begin.spanPosition.position + tag->markdownOpening.size();
 
-			styles.emplace_back(pos, std::string::npos, begin.second, std::string::npos, *tag, level);
+			StyleSpan span = *begin.spanPosition.styleSpan;
+			span.from = pos;
+			
+			styles.push_back(span);
+			//styles.push_back(begin.first->createSpan(pos, std::string::npos, begin.second, std::string::npos, tag, level));
+			//styles.emplace_back(pos, std::string::npos, begin.second, std::string::npos, *tag, level);
 
 			// Find matching ending tag
 			size_t idx = source.find(ending, pos);
@@ -111,15 +147,15 @@ namespace Markdown
 			size_t recheckIdx = idx;
 			while (recheckIdx != std::string::npos)
 			{
-				StylePositionPair foundEnding = findFirst(source, recheckIdx, stylemap, true);
-				std::string endingStr = foundEnding.first->markdownClosing;
+				StyleSearchResult foundEnding = findFirst(source, recheckIdx, stylemap, level, MarkdownStyle::SearchMode::Closing);
+				std::string endingStr = foundEnding.style->markdownClosing;
 				if (endingStr == ending)
 				{
-					idx = foundEnding.second;
+					idx = foundEnding.spanPosition.position;
 					break;
 				}
 				else
-					recheckIdx = foundEnding.second + endingStr.size();
+					recheckIdx = foundEnding.spanPosition.position + endingStr.size();
 			}
 
 			if (idx != std::string::npos)

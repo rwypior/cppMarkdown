@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string>
 #include <memory>
+#include <vector>
 
 namespace Markdown
 {
@@ -126,33 +127,81 @@ namespace Markdown
         { }
     };
 
+    struct SpanPositionPair;
+
     struct MarkdownStyle
     {
+        enum class SearchMode
+        {
+            Opening,
+            Closing
+        };
+
         std::string markdownOpening = "";
         std::string markdownClosing = "";
         Style style;
         bool acceptsSubstyles = true;
+        std::vector<std::string> autoescape{};
 
         MarkdownStyle() = default;
 
-        MarkdownStyle(const std::string& markdownOpening, const std::string& markdownClosing, const Style& style, bool acceptsSubstyles = true)
+        MarkdownStyle(const std::string& markdownOpening, const std::string& markdownClosing, const Style& style, bool acceptsSubstyles = true, const std::vector<std::string>& autoescape = {})
             : markdownOpening(markdownOpening)
             , markdownClosing(markdownClosing)
             , style(style)
             , acceptsSubstyles(acceptsSubstyles)
+            , autoescape(autoescape)
         { }
 
-        MarkdownStyle(const std::string& markdownOpening, const std::string& markdownClosing, const std::string& htmlOpening, const std::string& htmlClosing, bool acceptsSubstyles = true)
+        MarkdownStyle(const std::string& markdownOpening, const std::string& markdownClosing, const std::string& htmlOpening, const std::string& htmlClosing, bool acceptsSubstyles = true, const std::vector<std::string>& autoescape = {})
             : markdownOpening(markdownOpening)
             , markdownClosing(markdownClosing)
             , style(htmlOpening, htmlClosing)
             , acceptsSubstyles(acceptsSubstyles)
+            , autoescape(autoescape)
         { }
 
         static MarkdownStyle makeHtml(const std::string& opening, const std::string& closing)
         {
             return MarkdownStyle("", "", opening, closing);
         }
+
+        virtual SpanPositionPair findIn(const std::string& str, size_t offset, SearchMode mode, size_t level) const;
+    };
+
+    struct LinkStyle : public MarkdownStyle
+    {
+        std::string link;
+        std::string text;
+
+        virtual SpanPositionPair findIn(const std::string& str, size_t offset, SearchMode mode, size_t level) const override;
+    };
+
+    struct StyleSpan
+    {
+        size_t from;
+        size_t to;
+        size_t tagFrom;
+        size_t tagTo;
+        //const std::shared_ptr<MarkdownStyle> style;
+        MarkdownStyle style;
+        size_t level;
+
+        //StyleSpan(size_t from, size_t to, size_t tagFrom, size_t tagTo, const std::shared_ptr<MarkdownStyle> style, size_t level)
+        StyleSpan(size_t from, size_t to, size_t tagFrom, size_t tagTo, const MarkdownStyle &style, size_t level)
+            : from(from)
+            , to(to)
+            , tagFrom(tagFrom)
+            , tagTo(tagTo)
+            , style(style)
+            , level(level)
+        { }
+    };
+
+    struct SpanPositionPair
+    {
+        std::shared_ptr<StyleSpan> styleSpan;
+        size_t position = std::string::npos;
     };
 
     template<typename It>
