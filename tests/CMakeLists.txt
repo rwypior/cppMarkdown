@@ -10,7 +10,7 @@ project ("cppMarkdownTest")
 add_executable(cppMarkdownTest)
 target_sources(cppMarkdownTest PRIVATE "main.cpp" "documenttest.cpp" "textentrytest.cpp" "paragraphtest.cpp" "headingtest.cpp" "blockquotetest.cpp" "listtest.cpp" "codetest.cpp" "linetest.cpp")
 
-set_property(TARGET cppMarkdownTest PROPERTY CXX_STANDARD 14)
+set_property(TARGET cppMarkdownTest PROPERTY CXX_STANDARD 17)
 
 target_include_directories(cppMarkdownTest PRIVATE "${CMAKE_SOURCE_DIR}/extern")
 target_include_directories(cppMarkdownTest PRIVATE "${CMAKE_SOURCE_DIR}/include")

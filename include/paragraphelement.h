@@ -13,7 +13,7 @@ namespace Markdown
 
         ParagraphElement(const std::string& content = "");
 
-        MarkdownStyle getParagraphStyle() const;
+        std::shared_ptr<MarkdownStyle> getParagraphStyle() const;
 
         virtual Type getType() const override;
         virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) override;

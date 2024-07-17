@@ -4,7 +4,7 @@
 
 namespace Markdown
 {
-	MarkdownStyle ParagraphElement::getParagraphStyle() const
+	std::shared_ptr<MarkdownStyle> ParagraphElement::getParagraphStyle() const
 	{
 		if (this->options & ElementOptions::Raw)
 			return MarkdownStyle::makeHtml("", "");

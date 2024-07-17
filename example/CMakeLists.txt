@@ -18,7 +18,7 @@ endif()
 project ("cppMarkdownExample")
 add_executable(cppMarkdownExample "example.cpp")
 
-set_property(TARGET cppMarkdownExample PROPERTY CXX_STANDARD 14)
+set_property(TARGET cppMarkdownExample PROPERTY CXX_STANDARD 17)
 
 target_include_directories (cppMarkdownExample PUBLIC "${CMAKE_SOURCE_DIR}/include")
 target_link_libraries (cppMarkdownExample cppMarkdown)

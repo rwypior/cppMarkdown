@@ -55,7 +55,7 @@ namespace Markdown
         return this->text.getHtml();
     }
 
-    MarkdownStyle HeadingElement::getDefaultStyle(Heading heading)
+    std::shared_ptr<MarkdownStyle> HeadingElement::getDefaultStyle(Heading heading)
     {
         switch (heading)
         {
