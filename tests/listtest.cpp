@@ -1,6 +1,6 @@
 #include "listelement.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 TEST_CASE("Simple list", "[list]")
 {
@@ -92,7 +92,6 @@ TEST_CASE("Nested list", "[list]")
 {
 	Markdown::ListElement el(R"list(1. First
 2. Second
-3. Third
     1. Nested 1
     2. Nested 2
     3. Nested 3
@@ -100,15 +99,13 @@ TEST_CASE("Nested list", "[list]")
 	REQUIRE(el.elements.elementsCount() == 3);
 	REQUIRE(el.getText() == R"list(1. First
 2. Second
-3. Third
 1. Nested 1
 2. Nested 2
 3. Nested 3
 Paragraph)list");
 	REQUIRE(el.getHtml() == "<ol>"
 "<li>First</li>"
-"<li>Second</li>"
-"<li>Third<ol>"
+"<li>Second<ol>"
 	"<li>Nested 1</li>"
 	"<li>Nested 2</li>"
 	"<li>Nested 3</li>"

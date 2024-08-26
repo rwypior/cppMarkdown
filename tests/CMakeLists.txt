@@ -12,7 +12,13 @@ target_sources(cppMarkdownTest PRIVATE "main.cpp" "documenttest.cpp" "textentryt
 
 set_property(TARGET cppMarkdownTest PROPERTY CXX_STANDARD 17)
 
-target_include_directories(cppMarkdownTest PRIVATE "${CMAKE_SOURCE_DIR}/extern")
+CPMAddPackage("gh:catchorg/Catch2@3.6.0")
+
 target_include_directories(cppMarkdownTest PRIVATE "${CMAKE_SOURCE_DIR}/include")
 
 target_link_libraries(cppMarkdownTest PRIVATE cppMarkdown)
+target_link_libraries(cppMarkdownTest PRIVATE Catch2::Catch2WithMain)
+
+list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
+include(Catch)
+catch_discover_tests(cppMarkdownTest)

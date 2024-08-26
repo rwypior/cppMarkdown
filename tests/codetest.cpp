@@ -1,7 +1,7 @@
 #include "codeelement.h"
 #include "document.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 TEST_CASE("Simple code block", "[code]")
 {
@@ -19,6 +19,7 @@ TEST_CASE("Simple code block", "[code]")
 TEST_CASE("Code block in document", "[code]")
 {
 	std::string markdown = R"md(Some paragraph
+
     This is a code block
 And another paragraph)md";
 

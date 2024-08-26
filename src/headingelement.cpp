@@ -33,7 +33,7 @@ namespace Markdown
 
             if (heading != Heading::Invalid)
             {
-                std::string text = std::static_pointer_cast<ParagraphElement>(previous)->text.getRawText();
+                std::string text = std::static_pointer_cast<ParagraphElement>(previous)->text.getMarkdown();
 
                 auto headingStyle = getDefaultStyle(heading);
                 this->heading = heading;

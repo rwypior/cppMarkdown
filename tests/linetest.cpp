@@ -1,7 +1,7 @@
 #include "lineelement.h"
 #include "document.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 TEST_CASE("Simple line", "[line]")
 {

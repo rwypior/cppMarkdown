@@ -1,7 +1,7 @@
 #include "paragraphelement.h"
 #include "document.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 TEST_CASE("Parsing regular text", "[paragraph]")
 {
@@ -18,7 +18,7 @@ TEST_CASE("Parsing markdown", "[paragraph]")
 {
 	Markdown::ParagraphElement el("*italic text*");
 	REQUIRE(el.getText() == "italic text");
-	REQUIRE(el.getHtml() == "<i>italic text</i>");
+	REQUIRE(el.getHtml() == "<p><i>italic text</i></p>");
 
 	Markdown::ParagraphElement el2("text **bold** text");
 	REQUIRE(el2.getText() == "text bold text");

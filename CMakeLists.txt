@@ -20,7 +20,10 @@ add_library(cppMarkdown)
 
 set_property(TARGET cppMarkdown PROPERTY CXX_STANDARD 17)
 
+include(cmake/CPM.cmake)
 target_include_directories (cppMarkdown PUBLIC "${PROJECT_SOURCE_DIR}/include")
+
+include(CTest)
 
 add_subdirectory ("src")
 add_subdirectory ("example")

@@ -3,6 +3,7 @@
 
 #include "cppmarkdowncommon.h"
 #include "document.h"
+#include "textentry.h"
 
 #include <vector>
 
@@ -11,7 +12,7 @@ namespace Markdown
     class ListElementContainer : public ElementContainer
     {
     public:
-        virtual ParseResult parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr) override;
+        virtual ParseResult parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr, Type mask = Type::None) override;
     };
 
     class ListItem : public Element
@@ -19,6 +20,7 @@ namespace Markdown
         friend class ListElement;
     public:
         ElementContainer elements;
+        TextEntry text;
 
         ListItem(const std::string& text = "");
 
@@ -34,7 +36,7 @@ namespace Markdown
         void fixParagraphs();
 
     private:
-        std::string text;
+        //std::string text;
         std::string buffer;
     };
 

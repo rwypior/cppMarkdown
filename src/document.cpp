@@ -6,6 +6,7 @@
 #include "listelement.h"
 #include "codeelement.h"
 #include "lineelement.h"
+#include "blankelement.h"
 
 #include <fstream>
 #include <sstream>
@@ -15,37 +16,39 @@ namespace Markdown
 {
 	// Element container
 
-	ParseResult ElementContainer::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active)
+	ParseResult ElementContainer::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active, Type mask)
 	{
-		if (ParseResult result = parseElement<LineElement>(line, previous, active))
+		if (ParseResult result = parseElement<LineElement>(line, previous, active, mask))
 			return result;
 		
-		if (ParseResult result = parseElement<ListElement>(line, previous, active))
+		if (ParseResult result = parseElement<ListElement>(line, previous, active, mask))
 			return result;
 		
-		if (ParseResult result = parseElement<CodeElement>(line, previous, active))
+		if (ParseResult result = parseElement<CodeElement>(line, previous, active, mask))
 			return result;
 
-		if (ParseResult result = parseElement<BlockquoteElement>(line, previous, active))
+		if (ParseResult result = parseElement<BlockquoteElement>(line, previous, active, mask))
 			return result;
 
-		if (ParseResult result = parseElement<HeadingElement>(line, previous, active))
+		if (ParseResult result = parseElement<HeadingElement>(line, previous, active, mask))
 			return result;
 
-		if (ParseResult result = parseElement<ParagraphElement>(line, previous, active))
+		if (ParseResult result = parseElement<ParagraphElement>(line, previous, active, mask))
 			return result;
 
-		return parseElement<ParagraphElement>(line, previous);
+		//return parseElement<ParagraphElement>(line, previous);
+		//return parseElement<BlankElement>(line, previous);
+		return ParseResult();
 	}
 
-	void ElementContainer::parse(const std::string& content)
+	void ElementContainer::parse(const std::string& content, Type mask)
 	{
 		std::shared_ptr<Element> activeElement = nullptr;
 		std::shared_ptr<Element> element = nullptr;
 		std::istringstream str(content);
 		for (std::string line; std::getline(str, line); )
 		{
-			ParseResult result = this->parseLine(line, element, activeElement);
+			ParseResult result = this->parseLine(line, element, activeElement, mask);
 
 			switch (result.code)
 			{
@@ -109,7 +112,7 @@ namespace Markdown
 
 			case ParseCode::Invalid:
 				activeElement = nullptr;
-				assert(!"Invalid element");
+				//assert(!"Invalid element");
 				break;
 			}
 		}

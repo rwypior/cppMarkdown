@@ -13,8 +13,8 @@ namespace Markdown
         using Container = std::vector<std::shared_ptr<Element>>;
 
     public:
-        virtual ParseResult parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr);
-        void parse(const std::string& content);
+        virtual ParseResult parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr, Type mask = Type::None);
+        void parse(const std::string& content, Type mask = Type::None);
 
         void addElement(std::shared_ptr<Element> element);
         void addElement(std::shared_ptr<Element> element, Container::const_iterator it);
@@ -31,11 +31,16 @@ namespace Markdown
         Container elements;
 
         template<typename T>
-        ParseResult parseElement(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr)
+        ParseResult parseElement(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr, Type mask = Type::None)
         {
             ParseResult result;
             result.element = active ? active : std::make_shared<T>();
-            result.code = result.element->parse(line, previous).code;
+
+            if ((1 << result.element->getType()) & mask)
+                result.code = ParseCode::Invalid;
+            else
+                result.code = result.element->parse(line, previous).code;
+
             return result;
         }
     };

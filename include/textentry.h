@@ -49,6 +49,7 @@ namespace Markdown
 
         virtual std::string getText() const;
         virtual std::string getHtml() const;
+        virtual std::string getMarkdown() const;
     };
 
     class TextEntry : public SpanContainer
@@ -63,14 +64,14 @@ namespace Markdown
     public:
         std::vector<std::unique_ptr<Span>> spans;
 
-        TextEntry(const std::string& content, const std::shared_ptr<MarkdownStyle> defaultStyle = nullptr);
+        TextEntry(const std::string& content = "", const std::shared_ptr<MarkdownStyle> defaultStyle = nullptr);
 
         virtual Container& getSpans() override;
         virtual const Container& getSpans() const override;
 
         std::string getText() const;
         std::string getHtml(HtmlOptions flags = HtmlOptions::Normal) const;
-        std::string getRawText() const;
+        std::string getMarkdown() const;
 
         bool empty() const;
 
@@ -156,6 +157,7 @@ namespace Markdown
 
             virtual std::string getText() const override;
             virtual std::string getHtml() const override;
+            virtual std::string getMarkdown() const override;
         };
 
         virtual Result findIn(const std::string& str, size_t offset, const StyleContainer& stylemap) const override;

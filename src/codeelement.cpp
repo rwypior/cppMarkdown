@@ -21,8 +21,9 @@ namespace Markdown
         size_t pos = 0;
         while (pos <= line.size())
         {
-            if (line[pos++] != ' ')
+            if (line[pos] != ' ')
                 break;
+            pos++;
         }
 
         if (pos < 4)

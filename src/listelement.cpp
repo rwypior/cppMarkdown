@@ -8,7 +8,7 @@ namespace Markdown
 {
     // Container
 
-    ParseResult ListElementContainer::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active)
+    ParseResult ListElementContainer::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active, Type mask)
     {
         return parseElement<ListItem>(line, previous, active);
     }
@@ -39,9 +39,18 @@ namespace Markdown
 
     void ListItem::finalize()
     {
-        this->elements.parse(ListElement::getListItemText(this->buffer));
-        for (auto& el : this->elements)
-            el->parent = this;
+        std::string text = ListElement::getListItemText(this->buffer);
+        this->elements.parse(text, 1 << Type::Paragraph);
+
+        if (this->elements.empty())
+        {
+            this->text.parse(trimmed(text));
+        }
+        else
+        {
+            for (auto& el : this->elements)
+                el->parent = this;
+        }
         this->fixParagraphs();
         this->buffer.clear();
     }
@@ -71,6 +80,9 @@ namespace Markdown
 
     std::string ListItem::getText() const
     {
+        if (this->elements.empty())
+            return this->text.getText();
+
         std::string str;
         for (const auto& element : this->elements)
         {
@@ -88,9 +100,14 @@ namespace Markdown
     std::string ListItem::getHtml() const
     {
         std::string html = "<li>";
-        for (const auto& element : this->elements)
+        if (this->elements.empty())
+            html += this->text.getHtml();
+        else
         {
-            html += element->getHtml();
+            for (const auto& element : this->elements)
+            {
+                html += element->getHtml();
+            }
         }
         html += "</li>";
         return html;

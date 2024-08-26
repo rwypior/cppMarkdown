@@ -186,6 +186,29 @@ namespace Markdown
 			return this->getText();
 	}
 
+	std::string Span::getMarkdown() const
+	{
+		std::string result;
+
+		if (this->style)
+			result += this->style->markdownOpening;
+
+		if (this->hasSpans())
+		{
+			for (const auto& span : this->children)
+			{
+				result += span->getMarkdown();
+			}
+		}
+		else
+			result += this->text;
+		
+		if (this->style)
+			result += this->style->markdownClosing;
+
+		return result;
+	}
+
 	// Link style
 
 	MarkdownStyle::Result LinkStyle::findIn(const std::string& str, size_t offset, const StyleContainer& /*stylemap*/) const
@@ -224,6 +247,25 @@ namespace Markdown
 	std::string LinkStyle::LinkSpan::getHtml() const
 	{
 		return "<a href=\"" + this->url + "\">" + this->text + "</a>";
+	}
+
+	std::string LinkStyle::LinkSpan::getMarkdown() const
+	{
+		std::string result = "[";
+
+		if (this->hasSpans())
+		{
+			for (const auto& span : this->children)
+			{
+				result += span->getMarkdown();
+			}
+		}
+		else
+			result += this->text;
+
+		result += "](" + this->url + ")";
+
+		return result;
 	}
 
 	// Text entry
@@ -298,7 +340,7 @@ namespace Markdown
 
 	TextEntry::TextEntry(const std::string& content, const std::shared_ptr<MarkdownStyle> defaultStyle)
 	{
-		this->parse(content);
+		this->parse(content, defaultStyle);
 	}
 
 	SpanContainer::Container& TextEntry::getSpans()
@@ -361,19 +403,18 @@ namespace Markdown
 		return html;
 	}
 
-	std::string TextEntry::getRawText() const
+	std::string TextEntry::getMarkdown() const
 	{
-		std::string raw;
+		std::string markdown;
 		for (const auto& span : this->spans)
 		{
-			std::string spanRaw = span->style->markdownOpening + span->text + span->style->markdownClosing;
-			raw += spanRaw + " ";
+			markdown += span->getMarkdown() + " ";
 		}
 
-		if (!raw.empty())
-			raw.pop_back();
+		if (!markdown.empty())
+			markdown.pop_back();
 
-		return raw;
+		return markdown;
 	}
 
 	bool TextEntry::empty() const

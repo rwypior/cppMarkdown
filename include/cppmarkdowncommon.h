@@ -25,13 +25,19 @@ namespace Markdown
         Bitfield(unsigned int value) : value(static_cast<T>(value)) {}
         operator T() const { return value; }
         operator bool() const { return static_cast<unsigned int>(value); }
+        Bitfield<T> operator |(T b) { return static_cast<T>(static_cast<unsigned int>(value) | static_cast<unsigned int>(b)); };
+        Bitfield<T> operator &(T b) { return static_cast<T>(static_cast<unsigned int>(value) & static_cast<unsigned int>(b)); };
+        Bitfield<T> operator |=(T b) { return static_cast<T>(value = static_cast<T>(static_cast<unsigned int>(value) | static_cast<unsigned int>(b))); };
+        Bitfield<T> operator &=(T b) { return static_cast<T>(value = static_cast<T>(static_cast<unsigned int>(value) & static_cast<unsigned int>(b))); };
     };
 
 #define DEFINE_BITFIELD(Enum) \
 	static Bitfield<Enum> operator |(Enum a, Enum b) { return static_cast<unsigned int>(a) | static_cast<unsigned int>(b); } \
 	static Bitfield<Enum> operator &(Enum a, Enum b) { return static_cast<unsigned int>(a) & static_cast<unsigned int>(b); } \
     static Bitfield<Enum> operator |=(Enum& a, Enum b) { return a = static_cast<Enum>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b)); } \
-	static Bitfield<Enum> operator &=(Enum& a, Enum b) { return a = static_cast<Enum>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b)); }
+	static Bitfield<Enum> operator &=(Enum& a, Enum b) { return a = static_cast<Enum>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b)); } \
+    static Bitfield<Enum> operator <<(unsigned int a, Enum b) { return static_cast<Enum>(a << static_cast<unsigned int>(b)); } \
+    static Bitfield<Enum> operator >>(unsigned int a, Enum b) { return static_cast<Enum>(a >> static_cast<unsigned int>(b)); }
 
     std::string getMarkdownText(const std::string& line);
 
@@ -48,6 +54,7 @@ namespace Markdown
 
     enum class Type
     {
+        None,
         Blank,
         Paragraph,
         Heading,
@@ -60,6 +67,8 @@ namespace Markdown
         Code,
         Line
     };
+
+    DEFINE_BITFIELD(Type);
 
     enum class ElementOptions
     {
@@ -143,7 +152,7 @@ namespace Markdown
             }));
     }
 
-    inline std::string ltrim(const std::string& text)
+    inline std::string ltrimmed(const std::string& text)
     {
         std::string result = text;
         ltrim(result);
@@ -157,7 +166,7 @@ namespace Markdown
             }).base(), text.end());
     }
 
-    inline std::string rtrim(const std::string& text)
+    inline std::string rtrimmed(const std::string& text)
     {
         std::string result = text;
         rtrim(result);
@@ -170,7 +179,7 @@ namespace Markdown
         rtrim(text);
     }
 
-    inline std::string trim(const std::string& text)
+    inline std::string trimmed(const std::string& text)
     {
         std::string result = text;
         ltrim(result);

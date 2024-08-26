@@ -23,12 +23,12 @@ namespace Markdown
             return ParseResult(ParseCode::Invalid);
 
         std::vector<char> linechars = {'*', '-', '_'};
-        std::string trimmed = trim(line);
+        std::string txttrimmed = trimmed(line);
 
         bool good = false;
         for (char c : linechars)
         {
-            if (trimmed.find_first_not_of(c) == std::string::npos)
+            if (txttrimmed.find_first_not_of(c) == std::string::npos)
             {
                 good = true;
                 break;
