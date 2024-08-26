@@ -1,6 +1,7 @@
 #include "document.h"
 
 #include "paragraphelement.h"
+#include "linebreakelement.h"
 #include "headingelement.h"
 #include "blockquoteelement.h"
 #include "listelement.h"
@@ -33,12 +34,25 @@ namespace Markdown
 		if (ParseResult result = parseElement<HeadingElement>(line, previous, active, mask))
 			return result;
 
+		if (ParseResult result = parseElement<LineBreakElement>(line, previous, active, mask))
+			return result;
+		
 		if (ParseResult result = parseElement<ParagraphElement>(line, previous, active, mask))
 			return result;
 
 		//return parseElement<ParagraphElement>(line, previous);
 		//return parseElement<BlankElement>(line, previous);
 		return ParseResult();
+	}
+
+	void ElementContainer::finalizeElement(std::shared_ptr<Element>& activeElement)
+	{
+		if (activeElement)
+		{
+			activeElement->finalize();
+			this->addElement(activeElement);
+			activeElement = nullptr;
+		}
 	}
 
 	void ElementContainer::parse(const std::string& content, Type mask)
@@ -48,72 +62,67 @@ namespace Markdown
 		std::istringstream str(content);
 		for (std::string line; std::getline(str, line); )
 		{
-			ParseResult result = this->parseLine(line, element, activeElement, mask);
-
-			switch (result.code)
+			bool retry = true;
+			while (retry)
 			{
-			case ParseCode::Discard:
-				break;
+				retry = false;
+				ParseResult result = this->parseLine(line, element, activeElement, mask);
 
-			case ParseCode::ParseNext:
-				if (activeElement)
-				{
-					activeElement->finalize();
-					this->addElement(activeElement);
-					activeElement = nullptr;
-				}
-				element = result.element;
-				break;
+				if (result.flags & ParseFlags::ErasePrevious)
+					this->elements.pop_back();
 
-			case ParseCode::ElementComplete:
-				if (activeElement)
+				switch (result.code)
 				{
-					activeElement->finalize();
-					this->addElement(activeElement);
-					activeElement = nullptr;
-				}
-				if (element)
+				case ParseCode::Discard:
+					break;
+
+				case ParseCode::ParseNext:
+					this->finalizeElement(activeElement);
+					element = result.element;
+					break;
+
+				case ParseCode::ElementComplete:
+					this->finalizeElement(activeElement);
+					if (element)
+						this->addElement(element);
+					this->addElement(result.element);
+					element = result.element;
+					//element = nullptr;
+					break;
+
+				case ParseCode::ParseNextAcceptPrevious:
+					this->finalizeElement(activeElement);
 					this->addElement(element);
-				this->addElement(result.element);
-				element = nullptr;
-				break;
+					element = result.element;
+					break;
 
-			case ParseCode::ParseNextAcceptPrevious:
-				if (activeElement)
-				{
-					activeElement->finalize();
-					this->addElement(activeElement);
-					activeElement = nullptr;
-				}
-				this->addElement(element);
-				element = result.element;
-				break;
-
-			case ParseCode::ElementCompleteDiscardPrevious:
-				if (activeElement)
-				{
-					activeElement->finalize();
-					this->addElement(activeElement);
-					activeElement = nullptr;
-				}
-				this->addElement(result.element);
-				element = nullptr;
-				break;
-
-			case ParseCode::RequestMore:
-				activeElement = result.element;
-				if (element)
-				{
-					activeElement->finalize();
-					this->addElement(element);
+				case ParseCode::ElementCompleteDiscardPrevious:
+					this->finalizeElement(activeElement);
+					this->addElement(result.element);
 					element = nullptr;
-				}
-				break;
+					break;
+				
+				case ParseCode::ElementCompleteParseNext:
+					this->finalizeElement(activeElement);
+					element = nullptr;
+					retry = true;
+					break;
 
-			case ParseCode::Invalid:
-				activeElement = nullptr;
-				//assert(!"Invalid element");
-				break;
+				case ParseCode::RequestMore:
+					activeElement = result.element;
+					if (element)
+					{
+						activeElement->finalize();
+						//this->addElement(element);
+						element = nullptr;
+					}
+					break;
+
+				case ParseCode::Invalid:
+					activeElement = nullptr;
+					//assert(!"Invalid element");
+					break;
+				}
 			}
 		}
 

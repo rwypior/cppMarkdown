@@ -20,6 +20,7 @@ namespace Markdown
         virtual std::string getHtml() const override;
 
         static std::string getCodeText(const std::string& line);
+        static unsigned int getCodeLevel(const std::string& line);
     };
 }
 

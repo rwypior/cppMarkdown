@@ -9,6 +9,10 @@ namespace Markdown
     class LineBreakElement : public Element
     {
     public:
+        // Line breaks are skippable by default - meaning duplicate linebreaks will be ommitted
+        // If a line consists of only two or more whitespaces - it's always inserted
+        bool skippable = true;
+
         LineBreakElement() = default;
 
         virtual Type getType() const override;
@@ -16,6 +20,9 @@ namespace Markdown
 
         virtual std::string getText() const override;
         virtual std::string getHtml() const override;
+
+        static bool isAllWhitespace(const std::string& line);
+        static bool isSkippable(const std::string& line);
     };
 }
 

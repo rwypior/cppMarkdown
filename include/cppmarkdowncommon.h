@@ -48,8 +48,15 @@ namespace Markdown
         ElementComplete, // Add current element, and previous element if present
         ParseNextAcceptPrevious, // Parse next element and add previous element
         ElementCompleteDiscardPrevious, // Add current element and discard previous element
+        ElementCompleteParseNext, // Add current element and parse current line again
         RequestMore, // Parse next element and pass to current element
         Invalid // Element is invalid
+    };
+
+    enum class ParseFlags
+    {
+        None = 0x00,
+        ErasePrevious = 0x01 // Erase previous element
     };
 
     enum class Type
@@ -69,6 +76,7 @@ namespace Markdown
     };
 
     DEFINE_BITFIELD(Type);
+    DEFINE_BITFIELD(ParseFlags);
 
     enum class ElementOptions
     {
@@ -109,12 +117,11 @@ namespace Markdown
     {
         std::shared_ptr<Element> element;
         ParseCode code;
+        ParseFlags flags = ParseFlags::None;
 
-        ParseResult(
-            ParseCode code = ParseCode::Invalid,
-            std::shared_ptr<Element> element = nullptr
-        )
+        ParseResult(ParseCode code = ParseCode::Invalid, ParseFlags flags = ParseFlags::None, std::shared_ptr<Element> element = nullptr)
             : code(code)
+            , flags(flags)
             , element(element)
         { }
 

@@ -39,10 +39,16 @@ namespace Markdown
             if ((1 << result.element->getType()) & mask)
                 result.code = ParseCode::Invalid;
             else
-                result.code = result.element->parse(line, previous).code;
+            {
+                auto parseResult = result.element->parse(line, previous);
+                result.code = parseResult.code;
+                result.flags = parseResult.flags;
+            }
 
             return result;
         }
+
+        void finalizeElement(std::shared_ptr<Element>& activeElement);
     };
 
     class Document : public ElementContainer

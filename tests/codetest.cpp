@@ -3,6 +3,22 @@
 
 #include <catch2/catch_all.hpp>
 
+TEST_CASE("Code element level counting", "[code]")
+{
+	REQUIRE(Markdown::CodeElement::getCodeLevel("\txxx") == 1);
+	REQUIRE(Markdown::CodeElement::getCodeLevel("\t        xxx") == 1);
+	REQUIRE(Markdown::CodeElement::getCodeLevel("\t\txxx") == 2);
+	REQUIRE(Markdown::CodeElement::getCodeLevel("\t\t        xxx") == 2);
+	REQUIRE(Markdown::CodeElement::getCodeLevel("   xxx") == 0);
+	REQUIRE(Markdown::CodeElement::getCodeLevel("    xxx") == 1);
+	REQUIRE(Markdown::CodeElement::getCodeLevel("        xxx") == 2);
+	REQUIRE(Markdown::CodeElement::getCodeLevel("        \txxx") == 2);
+	REQUIRE(Markdown::CodeElement::getCodeLevel("") == 0);
+	REQUIRE(Markdown::CodeElement::getCodeLevel("xxx") == 0);
+	REQUIRE(Markdown::CodeElement::getCodeLevel("xxx    ") == 0);
+	REQUIRE(Markdown::CodeElement::getCodeLevel("xxx\t") == 0);
+}
+
 TEST_CASE("Simple code block", "[code]")
 {
 	Markdown::CodeElement el("1337 code");
