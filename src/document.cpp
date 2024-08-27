@@ -87,7 +87,7 @@ namespace Markdown
 						this->addElement(element);
 					this->addElement(result.element);
 					element = result.element;
-					//element = nullptr;
+					element = nullptr;
 					break;
 
 				case ParseCode::ParseNextAcceptPrevious:

@@ -1,4 +1,5 @@
 #include "paragraphelement.h"
+#include "linebreakelement.h"
 #include "document.h"
 
 #include <catch2/catch_all.hpp>
@@ -25,6 +26,27 @@ TEST_CASE("Parsing markdown", "[paragraph]")
 	REQUIRE(el2.getHtml() == "<p>text <b>bold</b> text</p>");
 }
 
+TEST_CASE("Multiple paragraphs", "[paragraph]")
+{
+	std::string markdown = R"md(First
+Second
+Third)md";
+
+	Markdown::Document doc;
+	doc.parse(markdown);
+
+	REQUIRE(doc.elementsCount() == 3);
+
+	auto it = doc.begin();
+	REQUIRE(std::static_pointer_cast<Markdown::ParagraphElement>(*it)->getText() == "First");
+
+	it++;
+	REQUIRE(std::static_pointer_cast<Markdown::ParagraphElement>(*it)->getText() == "Second");
+
+	it++;
+	REQUIRE(std::static_pointer_cast<Markdown::ParagraphElement>(*it)->getText() == "Third");
+}
+
 TEST_CASE("Blank lines", "[paragraph]")
 {
 	std::string markdown = R"md(Some paragraph
@@ -41,8 +63,8 @@ Last line)md";
 	REQUIRE(first->getText() == "Some paragraph");
 
 	it++;
-	auto second = std::static_pointer_cast<Markdown::ParagraphElement>(*it);
-	REQUIRE(second->getText().empty());
+	auto second = std::static_pointer_cast<Markdown::LineBreakElement>(*it);
+	REQUIRE(second);
 	
 	it++;
 	auto third = std::static_pointer_cast<Markdown::ParagraphElement>(*it);

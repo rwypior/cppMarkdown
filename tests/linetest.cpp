@@ -1,4 +1,5 @@
 #include "lineelement.h"
+#include "linebreakelement.h"
 #include "document.h"
 
 #include <catch2/catch_all.hpp>
@@ -33,7 +34,7 @@ And another paragraph)md";
 	REQUIRE((*it)->getType() == Markdown::Type::Paragraph);
 	it++;
 
-	REQUIRE((*it)->getType() == Markdown::Type::Paragraph);
+	REQUIRE((*it)->getType() == Markdown::Type::LineBreak);
 	it++;
 
 	REQUIRE((*it)->getType() == Markdown::Type::Line);
@@ -59,7 +60,7 @@ TEST_CASE("Two lines in document", "[code]")
 	REQUIRE((*it)->getType() == Markdown::Type::Paragraph);
 	it++;
 
-	REQUIRE((*it)->getType() == Markdown::Type::Paragraph);
+	REQUIRE((*it)->getType() == Markdown::Type::LineBreak);
 	it++;
 
 	REQUIRE((*it)->getType() == Markdown::Type::Line);

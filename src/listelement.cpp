@@ -41,6 +41,10 @@ namespace Markdown
     {
         std::string text = ListElement::getListItemText(this->buffer);
         this->elements.parse(text, 1 << Type::Paragraph);
+        //this->elements.parse(text);
+        // TODO -> ^^^ this is the correct version, fix it
+        // Text container currently has always no text and single child with an actual content,
+        // instead it should immediatelly contain the content
 
         if (this->elements.empty())
         {

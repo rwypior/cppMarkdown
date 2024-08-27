@@ -60,6 +60,7 @@ And another paragraph)md";
 TEST_CASE("Multiline code block", "[code]")
 {
 	std::string markdown = R"md(Some paragraph
+
     First line of code
 	Second line of code
 And another paragraph)md";
@@ -85,6 +86,7 @@ And another paragraph)md";
 TEST_CASE("Code block with tabs", "[code]")
 {
 	std::string markdown = R"md(Some paragraph
+
 	A code)md";
 
 	Markdown::Document doc;
@@ -93,7 +95,7 @@ TEST_CASE("Code block with tabs", "[code]")
 	REQUIRE(doc.elementsCount() == 2);
 
 	auto it = doc.begin();
-
+	
 	REQUIRE((*it)->getType() == Markdown::Type::Paragraph);
 	it++;
 

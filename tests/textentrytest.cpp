@@ -44,13 +44,11 @@ TEST_CASE("Links", "[textentry]")
 
 TEST_CASE("Mixed links", "[textentry]")
 {
-	Markdown::TextEntry asda("This is some [Text](link) blabla");
 	REQUIRE(Markdown::TextEntry("This is some [Text](link) blabla").getHtml() == "This is some <a href=\"link\">Text</a> blabla");
 }
 
 TEST_CASE("Links with styles", "[textentry]")
 {
-	Markdown::TextEntry asda("[**Bold** text](link)");
 	REQUIRE(Markdown::TextEntry("[**Bold** text](link)").getHtml() == "<a href=\"link\"><b>Text</b></a>");
 }
 
