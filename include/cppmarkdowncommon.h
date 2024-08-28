@@ -8,6 +8,9 @@
 
 namespace Markdown
 {
+    static const int dumpIndent = 8;
+    static const char dumpIndentChar = ' ';
+
     class FileException : public std::runtime_error
     {
     public:
@@ -84,6 +87,8 @@ namespace Markdown
         Raw = 0x01      // Drop HTML tags when obtaining HTML output
     };
 
+    std::string typeToString(Type type);
+
     struct ParseResult;
 
     class Element
@@ -109,6 +114,7 @@ namespace Markdown
 
         virtual std::string getText() const { return ""; }
         virtual std::string getHtml() const { return ""; }
+        virtual std::string dump(int indent = 0) const;
     };
 
     DEFINE_BITFIELD(ElementOptions);
@@ -193,6 +199,11 @@ namespace Markdown
         rtrim(result);
         return result;
     }
+
+    void replace_in(std::string &source, const std::string& target, const std::string& replacement);
+    std::string replace(std::string source, const std::string& target, const std::string& replacement);
+
+    std::string dumpElement(const Element& element, int indent = 0);
 }
 
 #endif

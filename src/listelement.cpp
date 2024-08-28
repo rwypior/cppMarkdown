@@ -41,10 +41,6 @@ namespace Markdown
     {
         std::string text = ListElement::getListItemText(this->buffer);
         this->elements.parse(text, 1 << Type::Paragraph);
-        //this->elements.parse(text);
-        // TODO -> ^^^ this is the correct version, fix it
-        // Text container currently has always no text and single child with an actual content,
-        // instead it should immediatelly contain the content
 
         if (this->elements.empty())
         {
@@ -115,6 +111,13 @@ namespace Markdown
         }
         html += "</li>";
         return html;
+    }
+
+    std::string ListItem::dump(int indent) const
+    {
+        std::string result = Element::dump(indent) + "\n";
+        result += this->elements.dump(indent);
+        return result;
     }
 
     // List element
@@ -232,6 +235,13 @@ namespace Markdown
         return html;
     }
 
+    std::string ListElement::dump(int indent) const
+    {
+        std::string result = Element::dump(indent) + "\n";
+        result += this->elements.dump(indent);
+        return result;
+    }
+
     size_t ListElement::findUnorderedMarker(const std::string& text)
     {
         std::vector<char> markers{'-', '*', '+'};
@@ -264,7 +274,7 @@ namespace Markdown
             if (pos == std::string::npos)
                 return marker;
 
-            for (auto it = line.begin(); it != std::next(line.begin(), pos); it++)
+            for (auto it = line.begin() + pos; it != std::next(line.begin(), pos); it++)
             {
                 if (!std::isdigit(*it))
                     return marker;

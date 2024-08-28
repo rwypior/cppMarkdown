@@ -16,6 +16,8 @@ namespace Markdown
         virtual ParseResult parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr, Type mask = Type::None);
         void parse(const std::string& content, Type mask = Type::None);
 
+        std::string dump(int indent = 0) const;
+
         void addElement(std::shared_ptr<Element> element);
         void addElement(std::shared_ptr<Element> element, Container::const_iterator it);
 

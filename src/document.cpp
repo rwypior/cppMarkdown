@@ -136,6 +136,16 @@ namespace Markdown
 			this->addElement(element);
 	}
 
+	std::string ElementContainer::dump(int indent) const
+	{
+		std::string result;
+		for (const auto& child : this->elements)
+		{
+			result += child->dump(indent + dumpIndent) + "\n";
+		}
+		return result;
+	}
+
 	void ElementContainer::addElement(std::shared_ptr<Element> element)
 	{
 		this->elements.push_back(element);

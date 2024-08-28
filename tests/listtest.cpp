@@ -2,6 +2,26 @@
 
 #include <catch2/catch_all.hpp>
 
+TEST_CASE("List level parsing", "[list]")
+{
+	// Not a list
+	REQUIRE(Markdown::ListElement::getListLevel("x").level == -1);
+
+	// Ordered list
+	REQUIRE(Markdown::ListElement::getListLevel("1. x").level == 0);
+	REQUIRE(Markdown::ListElement::getListLevel("    1. x").level == 1);
+	REQUIRE(Markdown::ListElement::getListLevel("        1. x").level == 2);
+	REQUIRE(Markdown::ListElement::getListLevel("\t1. x").level == 1);
+	REQUIRE(Markdown::ListElement::getListLevel("\t\t1. x").level == 2);
+
+	// Unordered list
+	REQUIRE(Markdown::ListElement::getListLevel("- x").level == 0);
+	REQUIRE(Markdown::ListElement::getListLevel("    - x").level == 1);
+	REQUIRE(Markdown::ListElement::getListLevel("        - x").level == 2);
+	REQUIRE(Markdown::ListElement::getListLevel("\t- x").level == 1);
+	REQUIRE(Markdown::ListElement::getListLevel("\t\t- x").level == 2);
+}
+
 TEST_CASE("Simple list", "[list]")
 {
 	Markdown::ListElement el(R"list(1. First
@@ -96,6 +116,7 @@ TEST_CASE("Nested list", "[list]")
     2. Nested 2
     3. Nested 3
     Paragraph)list");
+	std::string dump = el.dump();
 	REQUIRE(el.elements.elementsCount() == 3);
 	REQUIRE(el.getText() == R"list(1. First
 2. Second
