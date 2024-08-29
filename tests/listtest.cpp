@@ -50,6 +50,7 @@ TEST_CASE("List with paragraph", "[list]")
 2. Second
 3. Third
     Paragraph)list");
+	INFO(el.dump());
 	REQUIRE(el.elements.elementsCount() == 3);
 	REQUIRE(el.getText() == R"list(1. First
 2. Second
@@ -116,7 +117,7 @@ TEST_CASE("Nested list", "[list]")
     2. Nested 2
     3. Nested 3
     Paragraph)list");
-	std::string dump = el.dump();
+	INFO(el.dump());
 	REQUIRE(el.elements.elementsCount() == 3);
 	REQUIRE(el.getText() == R"list(1. First
 2. Second

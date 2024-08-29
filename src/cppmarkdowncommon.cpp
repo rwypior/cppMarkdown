@@ -53,7 +53,7 @@ namespace Markdown
         replace_in(text, "\n", "\\n");
         replace_in(text, "\t", "\\t");
 
-        std::string result = std::string(indent, dumpIndentChar) + "[" + typeToString(this->getType()) + "] " + text;
+        std::string result = std::string(indent, dumpIndentChar) + "[" + typeToString(this->getType()) + "] " + text + "\n";
 
         return result;
     }

@@ -60,6 +60,7 @@ namespace Markdown
     public:
         ListElementContainer elements;
         ListType listType;
+        std::string buffer;
 
         ListElement(const std::string& text = "");
 

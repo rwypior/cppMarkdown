@@ -144,8 +144,28 @@ namespace Markdown
 
     ParseResult ListElement::parse(const std::string& line, std::shared_ptr<Element> previous)
     {
+        // TODO - move parsing to ListItem
+
         ListMarker marker = getListLevel(line);
+        if (marker.level == -1)
+        {
+            return ParseResult(ParseCode::Invalid);
+        }
+
+        this->buffer += line + "\n";
+        return ParseResult(ParseCode::RequestMore);
+
+        /*ListMarker marker = getListLevel(line);
         int listLevel = marker.level;
+
+        std::shared_ptr<Element> lastItem;
+
+        int currentIndent = 0;
+        if (!this->elements.empty())
+        {
+            lastItem = this->elements.back();
+            currentIndent = lastItem->getLevel();
+        }
 
         if (listLevel >= 0)
         {
@@ -181,13 +201,14 @@ namespace Markdown
         if (!this->elements.empty())
             this->elements.back()->finalize();
 
-        return ParseResult(ParseCode::Invalid);
+        return ParseResult(ParseCode::Invalid);*/
     }
 
     void ListElement::finalize()
     {
-        if (!this->elements.empty())
-            this->elements.back()->finalize();
+        this->elements.parse(this->buffer);
+        /*if (!this->elements.empty())
+            this->elements.back()->finalize();*/
     }
 
     std::string ListElement::getText() const
