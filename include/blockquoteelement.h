@@ -21,6 +21,7 @@ namespace Markdown
 
         virtual std::string getText() const override;
         virtual std::string getHtml() const override;
+        virtual std::string dump(int indent) const override;
 
         static int getBlockquoteLevel(const std::string& line);
         static std::string getBlockquoteText(const std::string& line);

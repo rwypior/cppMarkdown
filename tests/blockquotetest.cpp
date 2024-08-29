@@ -2,6 +2,17 @@
 
 #include <catch2/catch_all.hpp>
 
+TEST_CASE("Blockquote level parsing", "[blockquote]")
+{
+	REQUIRE(Markdown::BlockquoteElement::getBlockquoteLevel("Asd") == -1);
+	REQUIRE(Markdown::BlockquoteElement::getBlockquoteLevel("Asd > Asd") == -1);
+	REQUIRE(Markdown::BlockquoteElement::getBlockquoteLevel(">Asd") == 1);
+	REQUIRE(Markdown::BlockquoteElement::getBlockquoteLevel("> Asd") == 1);
+	REQUIRE(Markdown::BlockquoteElement::getBlockquoteLevel(">Asd>asd") == 1);
+	REQUIRE(Markdown::BlockquoteElement::getBlockquoteLevel(">>Asd") == 2);
+	REQUIRE(Markdown::BlockquoteElement::getBlockquoteLevel(">> Asd") == 2);
+}
+
 TEST_CASE("Simple blockquote", "[blockquote]")
 {
 	Markdown::BlockquoteElement el("Im a blockquote!");
@@ -29,6 +40,8 @@ TEST_CASE("Nested blockquote", "[blockquote]")
 > Last line)md";
 	Markdown::Document doc;
 	doc.parse(markdown);
+
+	INFO(doc.dump());
 
 	REQUIRE(doc.elementsCount() == 1);
 
@@ -85,6 +98,8 @@ TEST_CASE("Document parsing blockquote and paragraph", "[blockquote]")
 And regular paragraph)md";
 	Markdown::Document doc;
 	doc.parse(markdown);
+
+	INFO(doc.dump());
 
 	REQUIRE(doc.getText() ==
 		"Im a blockquote!\n"

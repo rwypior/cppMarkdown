@@ -113,12 +113,13 @@ namespace Markdown
 					if (element)
 					{
 						activeElement->finalize();
-						//this->addElement(element);
+						this->addElement(element);
 						element = nullptr;
 					}
 					break;
 
 				case ParseCode::Invalid:
+					this->finalizeElement(activeElement);
 					activeElement = nullptr;
 					//assert(!"Invalid element");
 					break;

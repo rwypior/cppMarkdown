@@ -31,7 +31,8 @@ namespace Markdown
 
     void BlockquoteElement::finalize()
     {
-        this->elements.parse(getEligibleText(this->buffer));
+        std::string source = getEligibleText(this->buffer);
+        this->elements.parse(source);
         this->buffer.clear();
     }
 
@@ -56,6 +57,13 @@ namespace Markdown
         }
         html += "</blockquote>";
         return html;
+    }
+
+    std::string BlockquoteElement::dump(int indent) const
+    {
+        std::string result = Element::dump(indent) + "\n";
+        result += this->elements.dump(indent);
+        return result;
     }
 
     int BlockquoteElement::getBlockquoteLevel(const std::string& line)
