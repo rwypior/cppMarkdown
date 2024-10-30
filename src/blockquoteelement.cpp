@@ -29,6 +29,20 @@ namespace Markdown
         return ParseResult(ParseCode::RequestMore);
     }
 
+    ParseResult BlockquoteElement::supply(const std::string& line, std::shared_ptr<Element> previous)
+    {
+        if (line.empty())
+            return ParseResult(ParseCode::ElementCompleteParseNext);
+
+        size_t pos = getBlockquoteLevel(line);
+        if (pos == -1)
+            return ParseResult(ParseCode::ElementCompleteParseNext);
+
+        this->buffer += line + "\n";
+
+        return ParseResult(ParseCode::RequestMore);
+    }
+
     void BlockquoteElement::finalize()
     {
         std::string source = getEligibleText(this->buffer);

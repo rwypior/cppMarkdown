@@ -56,6 +56,7 @@ Last line)md";
 	Markdown::Document doc;
 	doc.parse(markdown);
 
+	INFO(doc.getHtml());
 	REQUIRE(doc.elementsCount() == 3);
 
 	auto it = doc.begin();

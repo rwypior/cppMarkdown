@@ -9,10 +9,16 @@
 
 namespace Markdown
 {
+    class ListElement;
+
     class ListElementContainer : public ElementContainer
     {
     public:
+        ListElementContainer(ListElement* parent = nullptr);
         virtual ParseResult parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr, Type mask = Type::None) override;
+
+    private:
+        ListElement* parent;
     };
 
     class ListItem : public Element
@@ -23,9 +29,13 @@ namespace Markdown
         TextEntry text;
 
         ListItem(const std::string& text = "");
+        ListItem(ListElement* parent);
+
+        int getListLevel() const;
 
         virtual Type getType() const override;
         virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) override;
+        virtual ParseResult supply(const std::string& line, std::shared_ptr<Element> previous) override;
         virtual void finalize() override;
 
         virtual std::string getText() const override;
@@ -37,8 +47,10 @@ namespace Markdown
         void fixParagraphs();
 
     private:
-        //std::string text;
+        std::string label;
         std::string buffer;
+        ListElement* parent = nullptr;
+        int level = 0;
     };
 
     class ListElement : public Element
@@ -66,7 +78,9 @@ namespace Markdown
 
         virtual Type getType() const override;
         virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) override;
+        virtual ParseResult supply(const std::string& line, std::shared_ptr<Element> previous) override;
         virtual void finalize() override;
+        ListItem* getLastItem() const;
 
         virtual std::string getText() const override;
         virtual std::string getHtml() const override;

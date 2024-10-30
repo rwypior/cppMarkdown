@@ -33,14 +33,15 @@ namespace Markdown
 			if (text.empty() && previousParagraph->text.empty())
 				return ParseResult(ParseCode::Discard);
 
-			this->text = TextEntry(text, getParagraphStyle());
+			/*this->text = TextEntry(text, getParagraphStyle());
 
-			return ParseResult(ParseCode::ParseNextAcceptPrevious);
+			return ParseResult(ParseCode::ParseNextAcceptPrevious);*/
 		}
 
 		this->text = TextEntry(text, getParagraphStyle());
 
-		return ParseResult(ParseCode::ParseNext);
+		//return ParseResult(ParseCode::ParseNext);
+		return ParseResult(ParseCode::ElementComplete);
 	}
 
 	std::string ParagraphElement::getText() const

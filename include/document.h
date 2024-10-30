@@ -32,17 +32,22 @@ namespace Markdown
     protected:
         Container elements;
 
-        template<typename T>
-        ParseResult parseElement(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr, Type mask = Type::None)
+        template<typename T, typename... Args>
+        ParseResult parseElement(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr, Type mask = Type::None, Args... args)
         {
             ParseResult result;
-            result.element = active ? active : std::make_shared<T>();
+            result.element = active ? active : std::make_shared<T>(args...);
 
             if ((1 << result.element->getType()) & mask)
                 result.code = ParseCode::Invalid;
             else
             {
-                auto parseResult = result.element->parse(line, previous);
+                ParseResult parseResult;
+                //auto parseResult = result.element->parse(line, previous);
+                if (active)
+                    parseResult = result.element->supply(line, previous);
+                else
+                    parseResult = result.element->parse(line, previous);
                 result.code = parseResult.code;
                 result.flags = parseResult.flags;
             }

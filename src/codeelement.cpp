@@ -27,23 +27,22 @@ namespace Markdown
         if (pos == 0)
         {
             // Not started with tabs
+            return ParseResult(ParseCode::Invalid);
 
-            if (this->text.empty())
-            {
-                // Had no text before this iteration - invalid for code block
-                return ParseResult(ParseCode::Invalid);
-            }
-            else
-            {
-                // Had some text before - finish the element
-                //return ParseResult(ParseCode::ElementComplete);
-                return ParseResult(ParseCode::ElementCompleteParseNext);
-            }
+            //if (this->text.empty())
+            //{
+            //    // Had no text before this iteration - invalid for code block
+            //    return ParseResult(ParseCode::Invalid);
+            //}
+            //else
+            //{
+            //    // Had some text before - finish the element
+            //    //return ParseResult(ParseCode::ElementComplete);
+            //    return ParseResult(ParseCode::ElementCompleteParseNext);
+            //}
         }
 
         std::string code = getCodeText(line);
-        if (!this->text.empty())
-            this->text += '\n';
         this->text += code;
 
         //return ParseResult(ParseCode::RequestMore);
@@ -51,6 +50,21 @@ namespace Markdown
         // Previous element must be a line break
         // Since this is block-type element anyways - the line break is redundant - remove it
         return ParseResult(ParseCode::RequestMore, ParseFlags::ErasePrevious);
+    }
+
+    ParseResult CodeElement::supply(const std::string& line, std::shared_ptr<Element> previous)
+    {
+        if (line.empty())
+            return ParseResult(ParseCode::ElementCompleteParseNext);
+
+        size_t pos = getCodeLevel(line);
+        if (pos == 0)
+            return ParseResult(ParseCode::ElementCompleteParseNext);
+
+        std::string code = getCodeText(line);
+        this->text += "\n" + code;
+
+        return ParseResult(ParseCode::RequestMore);
     }
 
     std::string CodeElement::getText() const

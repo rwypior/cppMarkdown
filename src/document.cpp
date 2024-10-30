@@ -57,8 +57,9 @@ namespace Markdown
 
 	void ElementContainer::parse(const std::string& content, Type mask)
 	{
-		std::shared_ptr<Element> activeElement = nullptr;
-		std::shared_ptr<Element> element = nullptr;
+		std::shared_ptr<Element> activeElement = nullptr; // Element which requested more lines
+		std::shared_ptr<Element> previousElement = nullptr; // Currently parsed element
+		std::shared_ptr<Element> lastElement = nullptr; // Currently parsed element
 		std::istringstream str(content);
 		for (std::string line; std::getline(str, line); )
 		{
@@ -66,64 +67,50 @@ namespace Markdown
 			while (retry)
 			{
 				retry = false;
-				ParseResult result = this->parseLine(line, element, activeElement, mask);
+				ParseResult result = this->parseLine(line, previousElement, activeElement, mask);
 
 				if (result.flags & ParseFlags::ErasePrevious)
+				{
+					previousElement = nullptr;
 					this->elements.pop_back();
+				}
 
 				switch (result.code)
 				{
 				case ParseCode::Discard:
 					break;
 
-				case ParseCode::ParseNext:
+				case ParseCode::ReplacePrevious:
 					this->finalizeElement(activeElement);
-					element = result.element;
+					activeElement = nullptr;
+
+					this->elements.back() = result.element;
 					break;
 
 				case ParseCode::ElementComplete:
 					this->finalizeElement(activeElement);
-					if (element)
-						this->addElement(element);
+					activeElement = nullptr;
 					this->addElement(result.element);
-					element = result.element;
-					element = nullptr;
-					break;
-
-				case ParseCode::ParseNextAcceptPrevious:
-					this->finalizeElement(activeElement);
-					this->addElement(element);
-					element = result.element;
-					break;
-
-				case ParseCode::ElementCompleteDiscardPrevious:
-					this->finalizeElement(activeElement);
-					this->addElement(result.element);
-					element = nullptr;
 					break;
 				
 				case ParseCode::ElementCompleteParseNext:
 					this->finalizeElement(activeElement);
-					element = nullptr;
+					activeElement = nullptr;
 					retry = true;
 					break;
 
 				case ParseCode::RequestMore:
 					activeElement = result.element;
-					if (element)
-					{
-						activeElement->finalize();
-						this->addElement(element);
-						element = nullptr;
-					}
 					break;
 
 				case ParseCode::Invalid:
 					this->finalizeElement(activeElement);
 					activeElement = nullptr;
-					//assert(!"Invalid element");
 					break;
 				}
+
+				if (result.element)
+					previousElement = result.element;
 			}
 		}
 
@@ -132,9 +119,6 @@ namespace Markdown
 			activeElement->finalize();
 			this->addElement(activeElement);
 		}
-
-		if (element)
-			this->addElement(element);
 	}
 
 	std::string ElementContainer::dump(int indent) const

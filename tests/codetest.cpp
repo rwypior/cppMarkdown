@@ -42,6 +42,8 @@ And another paragraph)md";
 	Markdown::Document doc;
 	doc.parse(markdown);
 
+	INFO(doc.dump());
+
 	REQUIRE(doc.elementsCount() == 3);
 
 	auto it = doc.begin();
@@ -67,6 +69,8 @@ And another paragraph)md";
 
 	Markdown::Document doc;
 	doc.parse(markdown);
+
+	INFO(doc.dump());
 
 	REQUIRE(doc.elementsCount() == 3);
 

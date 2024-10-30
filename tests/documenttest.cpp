@@ -22,13 +22,12 @@ paragraph 2)md";
 	Markdown::Document doc;
 	doc.parse(markdown);
 
-	REQUIRE(doc.elementsCount() == 2);
-
-	auto it = doc.begin();
-
-	REQUIRE((*it)->getText() == "paragraph 1");
-	it++;
-	REQUIRE((*it)->getText() == "paragraph 2");
+	REQUIRE(doc.getHtml() ==
+		"<!DOCTYPE html><html><head></head><body>"
+		"<p>paragraph 1</p>"
+		"<p>paragraph 2</p>"
+		"</body></html>"
+	);
 }
 
 TEST_CASE("Complex document", "[document]")
@@ -41,8 +40,6 @@ Alternate header 1
 ===)md";
 	Markdown::Document doc;
 	doc.parse(markdown);
-
-	REQUIRE(doc.elementsCount() == 5);
 
 	REQUIRE(doc.getHtml() ==
 		"<!DOCTYPE html><html><head></head><body>"

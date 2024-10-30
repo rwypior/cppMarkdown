@@ -8,9 +8,14 @@ namespace Markdown
 {
     // Container
 
+    ListElementContainer::ListElementContainer(ListElement* parent)
+        : parent(parent)
+    {
+    }
+
     ParseResult ListElementContainer::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active, Type mask)
     {
-        return parseElement<ListItem>(line, previous, active);
+        return parseElement<ListItem>(line, previous, active, mask, this->parent);
     }
 
     // List item
@@ -21,6 +26,16 @@ namespace Markdown
             this->elements.parse(ListElement::getListItemText(text));
     }
 
+    ListItem::ListItem(ListElement* parent)
+        : parent(parent)
+    {
+    }
+
+    int ListItem::getListLevel() const
+    {
+        return this->level;
+    }
+
     Type ListItem::getType() const
     {
         return Type::ListItem;
@@ -29,9 +44,24 @@ namespace Markdown
     ParseResult ListItem::parse(const std::string& line, std::shared_ptr<Element> previous)
     {
         ListElement::ListMarker marker = ListElement::getListLevel(line);
-        int listLevel = marker.level;
-        if (listLevel < 0)
+        this->level = marker.level;
+        if (this->level < 0)
             return ParseResult(ParseCode::Invalid);
+
+        this->buffer += line + "\n";
+        return ParseResult(ParseCode::RequestMore);
+    }
+
+    ParseResult ListItem::supply(const std::string& line, std::shared_ptr<Element> previous)
+    {
+        ListElement::ListMarker marker = ListElement::getListLevel(line);
+
+        ListItem *lastItem = this->parent->getLastItem();
+
+        if (!lastItem || lastItem->getListLevel() >= this->getListLevel())
+        {
+            return ParseResult(ParseCode::ElementCompleteParseNext);
+        }
 
         this->buffer += line + "\n";
         return ParseResult(ParseCode::RequestMore);
@@ -123,6 +153,7 @@ namespace Markdown
     // List element
 
     ListElement::ListElement(const std::string& text)
+        : elements(this)
     {
         if (!text.empty())
         {
@@ -132,8 +163,7 @@ namespace Markdown
                 this->parse(line, nullptr);
             }
 
-            if (!this->elements.empty())
-                this->elements.back()->finalize();
+            this->finalize();
         }
     }
 
@@ -144,8 +174,6 @@ namespace Markdown
 
     ParseResult ListElement::parse(const std::string& line, std::shared_ptr<Element> previous)
     {
-        // TODO - move parsing to ListItem
-
         ListMarker marker = getListLevel(line);
         if (marker.level == -1)
         {
@@ -154,61 +182,31 @@ namespace Markdown
 
         this->buffer += line + "\n";
         return ParseResult(ParseCode::RequestMore);
+    }
 
-        /*ListMarker marker = getListLevel(line);
-        int listLevel = marker.level;
-
-        std::shared_ptr<Element> lastItem;
-
-        int currentIndent = 0;
-        if (!this->elements.empty())
+    ParseResult ListElement::supply(const std::string& line, std::shared_ptr<Element> previous)
+    {
+        ListMarker marker = getListLevel(line);
+        if (marker.level == -1)
         {
-            lastItem = this->elements.back();
-            currentIndent = lastItem->getLevel();
+            return ParseResult(ParseCode::ElementCompleteParseNext);
         }
 
-        if (listLevel >= 0)
-        {
-            if (!this->elements.empty())
-                this->elements.back()->finalize();
-
-            auto item = std::make_shared<ListItem>();
-            item->buffer += line;
-            item->parent = this;
-            
-            this->elements.addElement(item);
-            this->listType = marker.type;
-            return ParseResult(ParseCode::RequestMore);
-        }
-
-        int indentation = getListIndentation(line);
-
-        if (indentation >= 0)
-        {
-            if (this->elements.empty())
-                return ParseResult(ParseCode::Invalid);
-
-            auto lastItem = this->elements.back();
-            auto lastItemLevel = this->elements.back()->getLevel();
-            if (indentation < lastItemLevel)
-                return ParseResult(ParseCode::Invalid);
-
-            std::static_pointer_cast<ListItem>(lastItem)->buffer += "\n" + line;
-
-            return ParseResult(ParseCode::RequestMore);
-        }
-
-        if (!this->elements.empty())
-            this->elements.back()->finalize();
-
-        return ParseResult(ParseCode::Invalid);*/
+        this->buffer += line + "\n";
+        return ParseResult(ParseCode::RequestMore);
     }
 
     void ListElement::finalize()
     {
         this->elements.parse(this->buffer);
-        /*if (!this->elements.empty())
-            this->elements.back()->finalize();*/
+    }
+
+    ListItem* ListElement::getLastItem() const
+    {
+        if (this->elements.empty())
+            return nullptr;
+
+        return static_cast<ListItem*>(this->elements.back().get());
     }
 
     std::string ListElement::getText() const

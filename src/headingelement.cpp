@@ -38,7 +38,8 @@ namespace Markdown
                 auto headingStyle = getDefaultStyle(heading);
                 this->heading = heading;
                 this->text = TextEntry(text, headingStyle);
-                return ParseResult(ParseCode::ElementCompleteDiscardPrevious);
+                return ParseResult(ParseCode::ReplacePrevious);
+                //return ParseResult(ParseCode::ElementCompleteDiscardPrevious);
             }
         }
 

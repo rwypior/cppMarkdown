@@ -47,10 +47,11 @@ namespace Markdown
     enum class ParseCode
     {
         Discard, // Discard current component
-        ParseNext, // Parse next element with current element as previous
+        ReplacePrevious, // Replace previous element with current one
+        //ParseNext, // Parse next element with current element as previous
         ElementComplete, // Add current element, and previous element if present
-        ParseNextAcceptPrevious, // Parse next element and add previous element
-        ElementCompleteDiscardPrevious, // Add current element and discard previous element
+        //ParseNextAcceptPrevious, // Parse next element and add previous element
+        //ElementCompleteDiscardPrevious, // Add current element and discard previous element
         ElementCompleteParseNext, // Add current element and parse current line again
         RequestMore, // Parse next element and pass to current element
         Invalid // Element is invalid
@@ -61,6 +62,7 @@ namespace Markdown
         None = 0x00,
         ErasePrevious = 0x01 // Erase previous element
     };
+    DEFINE_BITFIELD(ParseFlags);
 
     enum class Type
     {
@@ -77,47 +79,18 @@ namespace Markdown
         Code,
         Line
     };
-
     DEFINE_BITFIELD(Type);
-    DEFINE_BITFIELD(ParseFlags);
 
     enum class ElementOptions
     {
         Normal = 0x00,  // No special options applied
         Raw = 0x01      // Drop HTML tags when obtaining HTML output
     };
+    DEFINE_BITFIELD(ElementOptions);
 
     std::string typeToString(Type type);
 
-    struct ParseResult;
-
-    class Element
-    {
-    public:
-        ElementOptions options = ElementOptions::Normal;
-        Element* parent = nullptr;
-
-        virtual Type getType() const = 0;
-        virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) = 0;
-        virtual void finalize() {};
-        unsigned int getLevel() const
-        {
-            unsigned int level = 0;
-            Element* p = this->parent;
-            while (p)
-            {
-                level++;
-                p = p->parent;
-            }
-            return level;
-        }
-
-        virtual std::string getText() const { return ""; }
-        virtual std::string getHtml() const { return ""; }
-        virtual std::string dump(int indent = 0) const;
-    };
-
-    DEFINE_BITFIELD(ElementOptions);
+    struct Element;
 
     struct ParseResult
     {
@@ -135,6 +108,42 @@ namespace Markdown
         {
             return this->code != ParseCode::Invalid;
         }
+    };
+
+    class Element
+    {
+    public:
+        ElementOptions options = ElementOptions::Normal;
+        Element* parent = nullptr;
+
+        // Get element's type
+        virtual Type getType() const = 0;
+
+        // Parse initial line of the element
+        virtual ParseResult parse(const std::string& line, std::shared_ptr<Element> previous) = 0;
+
+        // Supply additional lines of the element if result of previous parse or supply function was RequestMore
+        virtual ParseResult supply(const std::string& /*line*/, std::shared_ptr<Element> /*previous*/) { return ParseResult(ParseCode::Invalid); }
+
+        // Finalize element parsing after parse and/or supply functions declared the parsing is finished
+        virtual void finalize() {};
+
+        // Get element's level in the tree structure
+        unsigned int getLevel() const
+        {
+            unsigned int level = 0;
+            Element* p = this->parent;
+            while (p)
+            {
+                level++;
+                p = p->parent;
+            }
+            return level;
+        }
+
+        virtual std::string getText() const { return ""; }
+        virtual std::string getHtml() const { return ""; }
+        virtual std::string dump(int indent = 0) const;
     };
 
     struct Style
