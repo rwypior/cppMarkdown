@@ -9,6 +9,8 @@
 #include "lineelement.h"
 #include "blankelement.h"
 
+#include "util.h"
+
 #include <fstream>
 #include <sstream>
 #include <cassert>
@@ -49,6 +51,7 @@ namespace Markdown
 	{
 		if (activeElement)
 		{
+			DEBUG_LOG(std::string("Finalize element") + std::to_string(reinterpret_cast<size_t>(activeElement.get())));
 			activeElement->finalize();
 			this->addElement(activeElement);
 			activeElement = nullptr;
@@ -57,9 +60,14 @@ namespace Markdown
 
 	void ElementContainer::parse(const std::string& content, Type mask)
 	{
+		DEBUG_CONTEXT;
+
 		std::shared_ptr<Element> activeElement = nullptr; // Element which requested more lines
 		std::shared_ptr<Element> previousElement = nullptr; // Currently parsed element
 		std::shared_ptr<Element> lastElement = nullptr; // Currently parsed element
+
+		ParseResult result;
+
 		std::istringstream str(content);
 		for (std::string line; std::getline(str, line); )
 		{
@@ -67,7 +75,8 @@ namespace Markdown
 			while (retry)
 			{
 				retry = false;
-				ParseResult result = this->parseLine(line, previousElement, activeElement, mask);
+				DEBUG_LOG(std::string("Parsing line \"") + line + "\"" + (activeElement ? " with active element" : ""));
+				result = this->parseLine(line, previousElement, activeElement, mask);
 
 				if (result.flags & ParseFlags::ErasePrevious)
 				{
@@ -78,9 +87,12 @@ namespace Markdown
 				switch (result.code)
 				{
 				case ParseCode::Discard:
+					DEBUG_LOG("RESULT: Discard");
 					break;
 
 				case ParseCode::ReplacePrevious:
+					DEBUG_LOG("RESULT: ReplacePrevious");
+
 					this->finalizeElement(activeElement);
 					activeElement = nullptr;
 
@@ -88,22 +100,30 @@ namespace Markdown
 					break;
 
 				case ParseCode::ElementComplete:
+					DEBUG_LOG("RESULT: ElementComplete");
+
 					this->finalizeElement(activeElement);
 					activeElement = nullptr;
 					this->addElement(result.element);
 					break;
 				
 				case ParseCode::ElementCompleteParseNext:
+					DEBUG_LOG("RESULT: ElementCompleteParseNext");
+
 					this->finalizeElement(activeElement);
 					activeElement = nullptr;
 					retry = true;
 					break;
 
 				case ParseCode::RequestMore:
+					DEBUG_LOG("RESULT: RequestMore");
+
 					activeElement = result.element;
 					break;
 
 				case ParseCode::Invalid:
+					DEBUG_LOG("RESULT: Invalid");
+
 					this->finalizeElement(activeElement);
 					activeElement = nullptr;
 					break;
@@ -111,11 +131,14 @@ namespace Markdown
 
 				if (result.element)
 					previousElement = result.element;
+
+				DEBUG_LOG(std::string("TYPE: ") + (result.element ? typeToString(result.element->getType()) : "NONE"));
 			}
 		}
 
 		if (activeElement)
 		{
+			DEBUG_LOG(std::string("Finalize element ") + std::to_string(reinterpret_cast<size_t>(activeElement.get())));
 			activeElement->finalize();
 			this->addElement(activeElement);
 		}
@@ -141,9 +164,63 @@ namespace Markdown
 		this->elements.insert(it, element);
 	}
 
+	void ElementContainer::eraseElement(Container::const_iterator it)
+	{
+		this->elements.erase(it);
+	}
+
+	void ElementContainer::replaceElement(Container::iterator it, std::shared_ptr<Element> replacement)
+	{
+		*it = replacement;
+	}
+
+	void ElementContainer::replaceElements(std::function<bool(const Element&)> pred, std::function<std::shared_ptr<Element>(const Element&)> replacementPred)
+	{
+		for (auto it = this->elements.begin(); it != this->elements.end(); it++)
+		{
+			auto& el = *it->get();
+			if (pred(el))
+				this->replaceElement(it, replacementPred(el));
+		}
+	}
+
+	void ElementContainer::replaceElements(Type type, std::function<std::shared_ptr<Element>(const Element&)> replacementPred)
+	{
+		this->replaceElements([type](const Element& el) {
+			return el.getType() == type;
+		}, replacementPred);
+	}
+
 	bool ElementContainer::empty() const
 	{
 		return this->elements.empty();
+	}
+
+	void ElementContainer::clear()
+	{
+		this->elements.clear();
+	}
+
+	size_t ElementContainer::size() const
+	{
+		return this->elements.size();
+	}
+
+	std::shared_ptr<Element> ElementContainer::at(size_t index) const
+	{
+		return this->elements.at(index);
+	}
+
+	std::shared_ptr<Element> ElementContainer::take(size_t index)
+	{
+		auto el = this->elements.at(index);
+		this->elements.erase(this->elements.begin() + index);
+		return el;
+	}
+
+	ElementContainer::Container::value_type ElementContainer::front() const
+	{
+		return this->elements.front();
 	}
 
 	ElementContainer::Container::value_type ElementContainer::back() const
@@ -226,5 +303,76 @@ namespace Markdown
 		}
 		result += "</body></html>";
 		return result;
+	}
+
+	// 
+
+
+	void SubelementParser::parseSubelements(const std::string& source)
+	{
+		if (!source.empty())
+		{
+			bool supply = false;
+
+			std::istringstream str(source);
+			for (std::string line; std::getline(str, line); )
+			{
+				if (supply)
+				{
+					this->supply(line, nullptr);
+				}
+				else
+				{
+					ParseResult result = this->parse(line, nullptr);
+
+					if (result.code == ParseCode::RequestMore)
+						supply = true;
+					else
+						break;
+				}
+			}
+
+			this->finalize();
+		}
+	}
+
+	void SubelementUnpacker::unpackTo(SubelementUnpacker& target, Type mask)
+	{
+		ElementContainer& container = this->getContainer();
+
+		for (auto element : container)
+		{
+			target.getContainer().addElement(element);
+		}
+
+		container.clear();
+	}
+
+	void SubelementUnpacker::unpackToText(Type mask)
+	{
+		ElementContainer& container = this->getContainer();
+
+		//if (container.elementsCount() == 1)
+		{
+			const auto& element = container.front();
+			if ((1 << element->getType()) & mask)
+				return;
+
+			TextEntry& text = this->getText();
+
+			text.parse(element->getText());
+			container.clear();
+		}
+	}
+
+	void SubelementUnpacker::unpackElement(ElementContainer::Container::const_iterator it)
+	{
+		auto element = *it;
+
+		TextEntry& text = this->getText();
+
+		text.parse(element->getText());
+
+		this->getContainer().eraseElement(it);
 	}
 }

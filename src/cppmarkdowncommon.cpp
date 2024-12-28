@@ -1,6 +1,9 @@
 #include "cppmarkdowncommon.h"
+#include "document.h"
+#include "textentry.h"
 
 #include <unordered_map>
+#include <sstream>
 
 namespace Markdown
 {

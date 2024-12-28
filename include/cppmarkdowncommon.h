@@ -11,6 +11,9 @@ namespace Markdown
     static const int dumpIndent = 8;
     static const char dumpIndentChar = ' ';
 
+    class ElementContainer;
+    class TextEntry;
+
     class FileException : public std::runtime_error
     {
     public:
@@ -60,7 +63,8 @@ namespace Markdown
     enum class ParseFlags
     {
         None = 0x00,
-        ErasePrevious = 0x01 // Erase previous element
+        ErasePrevious = 0x01, // Erase previous element
+        ForceAdd = 0x02 // Add element at RequestMore code
     };
     DEFINE_BITFIELD(ParseFlags);
 

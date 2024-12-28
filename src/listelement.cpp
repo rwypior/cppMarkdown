@@ -1,29 +1,20 @@
 #include "listelement.h"
 #include "linebreakelement.h"
+#include "blankelement.h"
+#include "util.h"
 
 #include <sstream>
 #include <cassert>
 
 namespace Markdown
 {
-    // Container
-
-    ListElementContainer::ListElementContainer(ListElement* parent)
-        : parent(parent)
-    {
-    }
-
-    ParseResult ListElementContainer::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active, Type mask)
-    {
-        return parseElement<ListItem>(line, previous, active, mask, this->parent);
-    }
-
     // List item
 
     ListItem::ListItem(const std::string& text)
     {
         if (!text.empty())
-            this->elements.parse(ListElement::getListItemText(text));
+            this->parse(ListElement::getListItemText(text), nullptr);
+            //this->elements.parse(ListElement::getListItemText(text));
     }
 
     ListItem::ListItem(ListElement* parent)
@@ -36,6 +27,19 @@ namespace Markdown
         return this->level;
     }
 
+    bool ListItem::sublistFirst() const
+    {
+        return this->elements.empty() ? false : this->elements.front()->getType() == Type::List;
+    }
+
+    std::shared_ptr<Element> ListItem::getLastItem() const
+    {
+        if (this->elements.empty())
+            return nullptr;
+
+        return this->elements.back();
+    }
+
     Type ListItem::getType() const
     {
         return Type::ListItem;
@@ -45,9 +49,11 @@ namespace Markdown
     {
         ListElement::ListMarker marker = ListElement::getListLevel(line);
         this->level = marker.level;
-        if (this->level < 0)
+
+        if (!marker)
             return ParseResult(ParseCode::Invalid);
 
+        ElementContainer::parse(ListElement::getListItemText(line));
         this->buffer += line + "\n";
         return ParseResult(ParseCode::RequestMore);
     }
@@ -56,11 +62,26 @@ namespace Markdown
     {
         ListElement::ListMarker marker = ListElement::getListLevel(line);
 
-        ListItem *lastItem = this->parent->getLastItem();
+        auto lastItem = this->getLastItem();
+        ParseResult result;
+        if (auto container = std::dynamic_pointer_cast<ElementContainer>(lastItem))
+        {
+            std::string listText = ListElement::getListTextWithMarker(line);
+            result = container->parseLine(listText, previous, previous);
+            if (result.element)
+                result.element->finalize();
+        }
 
-        if (!lastItem || lastItem->getListLevel() >= this->getListLevel())
+        auto lastParentItem = this->parent->getLastItem();
+        if (!lastItem || marker.level <= lastParentItem->getListLevel())
         {
             return ParseResult(ParseCode::ElementCompleteParseNext);
+        }
+
+        if (result.code == ParseCode::Invalid)
+        {
+            ElementContainer::parse(ListElement::getListItemText(line));
+            this->replaceElements(Type::Paragraph, toBlankElement);
         }
 
         this->buffer += line + "\n";
@@ -69,102 +90,77 @@ namespace Markdown
 
     void ListItem::finalize()
     {
+        DEBUG_LOG("ListItem: Finalize");
         std::string text = ListElement::getListItemText(this->buffer);
-        this->elements.parse(text, 1 << Type::Paragraph);
 
-        if (this->elements.empty())
-        {
-            this->text.parse(trimmed(text));
-        }
-        else
-        {
-            for (auto& el : this->elements)
-                el->parent = this;
-        }
-        this->fixParagraphs();
-        this->buffer.clear();
+        for (auto& el : this->elements)
+            el->parent = this;
+
+        if (!this->elements.empty() && this->elements.front()->getType() == Type::Paragraph)
+            this->replaceElement(this->elements.begin(), std::make_shared<BlankElement>(this->elements.front()->getText()));
     }
 
-    void ListItem::fixParagraphs()
+    ElementContainer& ListItem::getContainer()
     {
-        Type previousType = Type::Blank;
-        std::vector<size_t> lineBreaks;
-        for (auto it = this->elements.begin(); it != this->elements.end(); it++)
-        {
-            auto& el = *it;
-            if (el->getType() == Type::Paragraph)
-                el->options |= ElementOptions::Raw;
+        return *this;
+    }
 
-            if (previousType == el->getType() && previousType == Type::Paragraph)
-                lineBreaks.push_back(it - this->elements.begin());
-
-            previousType = el->getType();
-        }
-
-        for (auto it = lineBreaks.rbegin(); it != lineBreaks.rend(); it++)
-        {
-            auto lineBreak = *it;
-            this->elements.addElement(std::make_shared<LineBreakElement>(), std::next(this->elements.begin(), lineBreak));
-        }
+    TextEntry& ListItem::getText()
+    {
+        return this->text;
     }
 
     std::string ListItem::getText() const
     {
-        if (this->elements.empty())
-            return this->text.getText();
+        std::string text = this->text.getText();
+        if (!text.empty())
+            text += "\n";
 
-        std::string str;
         for (const auto& element : this->elements)
         {
             if (element->getType() == Type::LineBreak)
                 continue;
 
-            str += element->getText() + "\n";
+            text += element->getText() + "\n";
         }
 
-        if (!str.empty())
-            str.pop_back();
-        return str;
+        if (!text.empty())
+            text.pop_back();
+
+        return text;
     }
 
     std::string ListItem::getHtml() const
     {
         std::string html = "<li>";
-        if (this->elements.empty())
-            html += this->text.getHtml();
-        else
+        html += this->text.getHtml();
+        for (const auto& element : this->elements)
         {
-            for (const auto& element : this->elements)
-            {
-                html += element->getHtml();
-            }
+            html += element->getHtml();
         }
         html += "</li>";
+
         return html;
     }
 
     std::string ListItem::dump(int indent) const
     {
         std::string result = Element::dump(indent) + "\n";
-        result += this->elements.dump(indent);
+        result += ElementContainer::dump(indent);
+        //result += this->elements.dump(indent);
         return result;
     }
 
     // List element
 
     ListElement::ListElement(const std::string& text)
-        : elements(this)
     {
-        if (!text.empty())
-        {
-            std::istringstream str(text);
-            for (std::string line; std::getline(str, line); )
-            {
-                this->parse(line, nullptr);
-            }
+        ElementContainer::parse(text);
+    }
 
-            this->finalize();
-        }
+    ParseResult ListElement::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active, Type mask)
+    {
+        return active ? this->supply(line, previous) : this->parse(line, previous);
     }
 
     Type ListElement::getType() const
@@ -172,41 +168,72 @@ namespace Markdown
         return Type::List;
     }
 
+    void ListElement::addElement(std::shared_ptr<Element> element)
+    { }
+
+    void ListElement::addElement(std::shared_ptr<Element> element, Container::const_iterator it)
+    { }
+
     ParseResult ListElement::parse(const std::string& line, std::shared_ptr<Element> previous)
     {
         ListMarker marker = getListLevel(line);
-        if (marker.level == -1)
+
+        auto item = std::make_shared<ListItem>(this);
+        auto result = item->parse(line, nullptr);
+        result.element = item;
+
+        if (result.code != ParseCode::Invalid)
         {
-            return ParseResult(ParseCode::Invalid);
+            this->listType = marker.type;
+            ElementContainer::addElement(item);
         }
 
-        this->buffer += line + "\n";
-        return ParseResult(ParseCode::RequestMore);
+        return result;
     }
 
     ParseResult ListElement::supply(const std::string& line, std::shared_ptr<Element> previous)
     {
-        ListMarker marker = getListLevel(line);
-        if (marker.level == -1)
+        auto result = this->getLastItem()->supply(line, nullptr);
+
+        if (result.code == ParseCode::ElementCompleteParseNext)
         {
-            return ParseResult(ParseCode::ElementCompleteParseNext);
+            DEBUG_LOG("ListElement: Last item finalize");
+            this->getLastItem()->finalize();
+            result = this->parse(line, previous);
         }
 
-        this->buffer += line + "\n";
-        return ParseResult(ParseCode::RequestMore);
+        if (result.code == ParseCode::Invalid)
+        {
+            result.code = ParseCode::ElementCompleteParseNext;
+        }
+        else if (result.code != ParseCode::RequestMore)
+        {
+            ElementContainer::addElement(result.element);
+            result.code = ParseCode::RequestMore;
+        }
+        else
+        {
+            result.element = this->getLastItem();
+        }
+
+        return result;
     }
 
     void ListElement::finalize()
     {
-        this->elements.parse(this->buffer);
+        DEBUG_LOG("ListElement: Finalize");
+        for (auto item : this->elements)
+        {
+            item->finalize();
+        }
     }
 
-    ListItem* ListElement::getLastItem() const
+    std::shared_ptr<ListItem> ListElement::getLastItem() const
     {
         if (this->elements.empty())
             return nullptr;
 
-        return static_cast<ListItem*>(this->elements.back().get());
+        return std::static_pointer_cast<ListItem>(this->elements.back());
     }
 
     std::string ListElement::getText() const
@@ -219,19 +246,25 @@ namespace Markdown
         case ListType::Ordered:
             for (const auto& element : this->elements)
             {
-                str += std::to_string(number++) + ". " + element->getText() + "\n";
+                std::string marker = std::to_string(number++) + ". ";
+                str += marker + element->getText() + "\n";
             }
             break;
         
         case ListType::Unordered:
             for (const auto& element : this->elements)
             {
-                str += "- " + element->getText() + "\n";
+                std::string marker = std::dynamic_pointer_cast<ListItem>(element)->sublistFirst() ? "" : "- ";
+                str += marker + element->getText() + "\n";
             }
             break;
+        default:
+            assert(!"Type musn't be unspecified");
         }
+
         if (!str.empty())
             str.pop_back();
+
         return str;
     }
 
@@ -242,7 +275,7 @@ namespace Markdown
         {
         case ListType::Ordered: tag = {"<ol>", "</ol>"}; break;
         case ListType::Unordered: tag = {"<ul>", "</ul>"}; break;
-        default: tag = { "", "" }; assert(!"Invalid list type"); break;
+        default: assert(!"Invalid list type"); break;
         }
 
         std::string html = tag.first;
@@ -256,9 +289,7 @@ namespace Markdown
 
     std::string ListElement::dump(int indent) const
     {
-        std::string result = Element::dump(indent) + "\n";
-        result += this->elements.dump(indent);
-        return result;
+        return ElementContainer::dump(indent);
     }
 
     size_t ListElement::findUnorderedMarker(const std::string& text)
@@ -278,6 +309,29 @@ namespace Markdown
         return std::string::npos;
     }
 
+    size_t ListElement::findOrderedMarker(const std::string& text)
+    {
+        size_t pos = text.find_first_of('.');
+        if (pos == std::string::npos)
+            return std::string::npos;
+
+        for (auto it = text.begin() + pos; it != std::next(text.begin(), pos); it++)
+        {
+            if (!std::isdigit(*it))
+                return std::string::npos;
+        }
+
+        return pos;
+    }
+
+    size_t ListElement::findMarker(const std::string& text)
+    {
+        auto pos = text.find_first_of('.');
+        if (pos == std::string::npos)
+            pos = findUnorderedMarker(text);
+        return pos;
+    }
+
     ListElement::ListMarker ListElement::getListLevel(const std::string& line)
     {
         ListMarker marker;
@@ -287,22 +341,20 @@ namespace Markdown
             marker.type = ListType::Unordered;
         else
         {
-            marker.type = ListType::Ordered;
+            pos = findOrderedMarker(line);
 
-            pos = line.find_first_of('.');
-            if (pos == std::string::npos)
-                return marker;
-
-            for (auto it = line.begin() + pos; it != std::next(line.begin(), pos); it++)
-            {
-                if (!std::isdigit(*it))
-                    return marker;
-            }
+            if (pos != std::string::npos)
+                marker.type = ListType::Ordered;
         }
+
+        if (line.empty())
+            return marker;
 
         bool tabs = line.front() == '\t';
         char search = tabs ? '\t' : ' ';
-        unsigned int count = std::count(line.begin(), std::next(line.begin(), pos), search);
+
+        // TODO - this could be just a difference of begin and first_not_of?
+        unsigned int count = std::count(line.begin(), std::next(line.begin(), line.find_first_not_of(search)), search);
 
         marker.level = tabs ? count : count / 4;
         return marker;
@@ -323,16 +375,19 @@ namespace Markdown
 
     std::string ListElement::getListText(const std::string& line)
     {
-        auto pos = line.find_first_of('.');
+        auto pos = findMarker(line);
         if (pos == std::string::npos)
-        {
-            pos = findUnorderedMarker(line);
-            if (pos == std::string::npos)
-                return "";
-        }
+            return "";
+        return line.substr(line.find_first_not_of(' ', pos + 1));
+    }
 
-        pos = line.find_first_not_of(' ', pos);
-        return line.substr(pos + 1);
+    std::string ListElement::getListTextWithMarker(const std::string& line)
+    {
+        auto pos = findMarker(line);
+        if (pos == std::string::npos)
+            return "";
+        size_t space = line.find_last_of(" \t", pos);
+        return line.substr(space == std::string::npos ? 0 : space + 1);
     }
 
     std::string ListElement::getListItemLineText(const std::string& line)

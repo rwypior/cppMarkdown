@@ -13,9 +13,15 @@ add_dependencies(cppMarkdownTest cppMarkdown)
 
 set_property(TARGET cppMarkdownTest PROPERTY CXX_STANDARD 17)
 
+target_compile_definitions(cppMarkdownTest
+    PRIVATE
+        $<$<CONFIG:Debug>:DEBUG>
+)
+
 CPMAddPackage("gh:catchorg/Catch2@3.6.0")
 
 target_include_directories(cppMarkdownTest PRIVATE "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(cppMarkdownTest PRIVATE "${CMAKE_SOURCE_DIR}/src")
 
 target_link_libraries(cppMarkdownTest PRIVATE cppMarkdown)
 target_link_libraries(cppMarkdownTest PRIVATE Catch2::Catch2WithMain)
