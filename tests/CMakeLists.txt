@@ -8,7 +8,7 @@ endif()
 project ("cppMarkdownTest")
 
 add_executable(cppMarkdownTest)
-target_sources(cppMarkdownTest PRIVATE "main.cpp" "documenttest.cpp" "textentrytest.cpp" "paragraphtest.cpp" "headingtest.cpp" "blockquotetest.cpp" "listtest.cpp" "codetest.cpp" "linetest.cpp" "linebreaktest.cpp")
+target_sources(cppMarkdownTest PRIVATE "main.cpp" "documenttest.cpp" "textentrytest.cpp" "paragraphtest.cpp" "headingtest.cpp" "blockquotetest.cpp" "listtest.cpp" "codetest.cpp" "linetest.cpp" "linebreaktest.cpp" "elementcontainertest.cpp")
 add_dependencies(cppMarkdownTest cppMarkdown)
 
 set_property(TARGET cppMarkdownTest PROPERTY CXX_STANDARD 17)

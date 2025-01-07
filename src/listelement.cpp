@@ -98,6 +98,8 @@ namespace Markdown
 
         if (!this->elements.empty() && this->elements.front()->getType() == Type::Paragraph)
             this->replaceElement(this->elements.begin(), std::make_shared<BlankElement>(this->elements.front()->getText()));
+
+        this->iterate(prependBlankElementsWithNewlines);
     }
 
     ElementContainer& ListItem::getContainer()

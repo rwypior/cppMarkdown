@@ -1,4 +1,5 @@
 #include "blankelement.h"
+#include "linebreakelement.h"
 
 #include <sstream>
 #include <cassert>
@@ -35,5 +36,11 @@ namespace Markdown
     std::shared_ptr<BlankElement> toBlankElement(const Element& element)
     {
         return std::make_shared<BlankElement>(element.getText());
+    }
+
+    void prependBlankElementsWithNewlines(ElementContainer& container, ElementContainer::Container::iterator pos, const Element* prev, const Element* next)
+    {
+        if (prev && next && prev->getType() == Type::Blank && next->getType() == Type::Blank)
+            container.addElement(std::make_shared<LineBreakElement>(), pos);
     }
 }

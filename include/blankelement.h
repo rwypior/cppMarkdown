@@ -8,6 +8,7 @@
 
 namespace Markdown
 {
+    // An element without any special parsing - only raw text
     class BlankElement : public Element
     {
     public:
@@ -23,7 +24,11 @@ namespace Markdown
         std::string text;
     };
 
+    // Convert any element to blank element with source element's text
     std::shared_ptr<BlankElement> toBlankElement(const Element& element);
+
+    // Insert line break element between any consecutive blank elements
+    void prependBlankElementsWithNewlines(ElementContainer& container, ElementContainer::Container::iterator pos, const Element* prev, const Element* next);
 }
 
 #endif

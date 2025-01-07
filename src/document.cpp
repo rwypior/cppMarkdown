@@ -164,6 +164,33 @@ namespace Markdown
 		this->elements.insert(it, element);
 	}
 
+	void ElementContainer::iterate(std::function<void(ElementContainer&, Container::iterator, const Element*, const Element*)> pred)
+	{
+		if (this->elements.empty())
+		{
+			pred(*this, this->elements.begin(), nullptr, nullptr);
+			return;
+		}
+
+		for (size_t i = 0; i < this->elements.size(); i++)
+		{
+			Element* prev = nullptr;
+			Element* next = nullptr;
+
+			if (i > 0)
+				prev = this->elements.at(i - 1).get();
+
+			if (i < this->elements.size())
+				next = this->elements.at(i).get();
+
+			size_t size = this->elements.size();
+			pred(*this, this->elements.begin() + i, prev, next);
+			size_t sizeAfter = this->elements.size();
+
+			i += sizeAfter - size;
+		}
+	}
+
 	void ElementContainer::eraseElement(Container::const_iterator it)
 	{
 		this->elements.erase(it);

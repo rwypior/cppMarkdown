@@ -21,6 +21,7 @@ namespace Markdown
 
         virtual void addElement(std::shared_ptr<Element> element);
         virtual void addElement(std::shared_ptr<Element> element, Container::const_iterator it);
+        virtual void iterate(std::function<void(ElementContainer& container, Container::iterator, const Element*, const Element*)> pred);
 
         virtual void eraseElement(Container::const_iterator it);
 
