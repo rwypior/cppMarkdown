@@ -31,6 +31,14 @@ namespace Markdown
         {
             return !this->getSpans().empty();
         }
+
+    protected:
+        virtual std::vector<std::unique_ptr<Span>> findStyle(
+            const std::string& source,
+            size_t level,
+            const std::vector<std::string>& autoescape,
+            SpanSearchFlags flags
+        );
     };
 
     struct Span : public SpanContainer
@@ -50,6 +58,14 @@ namespace Markdown
         virtual std::string getText() const;
         virtual std::string getHtml() const;
         virtual std::string getMarkdown() const;
+
+    protected:
+        virtual std::vector<std::unique_ptr<Span>> findStyle(
+            const std::string& source,
+            size_t level,
+            const std::vector<std::string>& autoescape,
+            SpanSearchFlags flags
+        ) override;
     };
 
     class TextEntry : public SpanContainer

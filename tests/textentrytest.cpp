@@ -64,6 +64,10 @@ TEST_CASE("Links with styles", "[textentry]")
 TEST_CASE("Inline code", "[textentry]")
 {
 	REQUIRE(Markdown::TextEntry("blabla `some code` bla").getHtml() == "blabla <code>some code</code> bla");
+}
+
+TEST_CASE("Inline double code", "[textentry]")
+{
 	REQUIRE(Markdown::TextEntry("blabla ``some code`` bla").getHtml() == "blabla <code>some code</code> bla");
 	REQUIRE(Markdown::TextEntry("blabla ``some `bla` code`` bla").getHtml() == "blabla <code>some `bla` code</code> bla");
 }

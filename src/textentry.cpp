@@ -90,12 +90,23 @@ namespace Markdown
 
 	// Span container
 
+	std::vector<std::unique_ptr<Span>> SpanContainer::findStyle(
+		const std::string& source,
+		size_t level,
+		const std::vector<std::string>&,
+		SpanSearchFlags flags
+	)
+	{
+		return TextEntry::findStyle(source, level, {}, flags);
+	}
+
 	void SpanContainer::parse(const std::string& markdown, const std::shared_ptr<MarkdownStyle> defaultStyle, SpanSearchFlags searchFlags)
 	{
 		if (markdown.empty())
 			return;
 
-		std::vector<std::unique_ptr<Span>> foundSpans = TextEntry::findStyle(markdown, 0, {}, searchFlags);
+		//std::vector<std::unique_ptr<Span>> foundSpans = TextEntry::findStyle(markdown, 0, {}, searchFlags);
+		std::vector<std::unique_ptr<Span>> foundSpans = this->findStyle(markdown, 0, {}, searchFlags);
 
 		auto& spans = this->getSpans();
 		if (defaultStyle)
@@ -129,6 +140,16 @@ namespace Markdown
 		: text(text)
 		, style(style)
 	{ }
+
+	std::vector<std::unique_ptr<Span>> Span::findStyle(
+		const std::string& source,
+		size_t level,
+		const std::vector<std::string>& autoescape,
+		SpanSearchFlags flags
+	)
+	{
+		return TextEntry::findStyle(source, level, this->style ? this->style->autoescape : std::vector<std::string>{}, flags);
+	}
 
 	SpanContainer::Container& Span::getSpans()
 	{
