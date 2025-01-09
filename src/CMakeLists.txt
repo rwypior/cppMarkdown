@@ -6,4 +6,4 @@ target_sources(cppMarkdown PUBLIC
 	"../include/listelement.h" "../include/linebreakelement.h"
  "../include/codeelement.h" "codeelement.cpp" "../include/lineelement.h" "lineelement.cpp" "../include/blankelement.h" "blankelement.cpp" "cppmarkdowncommon.cpp")
 
- target_sources(cppMarkdown PRIVATE "util.h")
+ target_sources(cppMarkdown PRIVATE )

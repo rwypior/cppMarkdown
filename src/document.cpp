@@ -9,8 +9,6 @@
 #include "lineelement.h"
 #include "blankelement.h"
 
-#include "util.h"
-
 #include <fstream>
 #include <sstream>
 #include <cassert>
@@ -42,8 +40,6 @@ namespace Markdown
 		if (ParseResult result = parseElement<ParagraphElement>(line, previous, active, mask))
 			return result;
 
-		//return parseElement<ParagraphElement>(line, previous);
-		//return parseElement<BlankElement>(line, previous);
 		return ParseResult();
 	}
 
@@ -51,7 +47,6 @@ namespace Markdown
 	{
 		if (activeElement)
 		{
-			DEBUG_LOG(std::string("Finalize element") + std::to_string(reinterpret_cast<size_t>(activeElement.get())));
 			activeElement->finalize();
 			this->addElement(activeElement);
 			activeElement = nullptr;
@@ -60,8 +55,6 @@ namespace Markdown
 
 	void ElementContainer::parse(const std::string& content, Type mask)
 	{
-		DEBUG_CONTEXT;
-
 		std::shared_ptr<Element> activeElement = nullptr; // Element which requested more lines
 		std::shared_ptr<Element> previousElement = nullptr; // Currently parsed element
 		std::shared_ptr<Element> lastElement = nullptr; // Currently parsed element
@@ -75,7 +68,6 @@ namespace Markdown
 			while (retry)
 			{
 				retry = false;
-				DEBUG_LOG(std::string("Parsing line \"") + line + "\"" + (activeElement ? " with active element" : ""));
 				result = this->parseLine(line, previousElement, activeElement, mask);
 
 				if (result.flags & ParseFlags::ErasePrevious)
@@ -86,13 +78,7 @@ namespace Markdown
 
 				switch (result.code)
 				{
-				case ParseCode::Discard:
-					DEBUG_LOG("RESULT: Discard");
-					break;
-
 				case ParseCode::ReplacePrevious:
-					DEBUG_LOG("RESULT: ReplacePrevious");
-
 					this->finalizeElement(activeElement);
 					activeElement = nullptr;
 
@@ -100,30 +86,22 @@ namespace Markdown
 					break;
 
 				case ParseCode::ElementComplete:
-					DEBUG_LOG("RESULT: ElementComplete");
-
 					this->finalizeElement(activeElement);
 					activeElement = nullptr;
 					this->addElement(result.element);
 					break;
 				
 				case ParseCode::ElementCompleteParseNext:
-					DEBUG_LOG("RESULT: ElementCompleteParseNext");
-
 					this->finalizeElement(activeElement);
 					activeElement = nullptr;
 					retry = true;
 					break;
 
 				case ParseCode::RequestMore:
-					DEBUG_LOG("RESULT: RequestMore");
-
 					activeElement = result.element;
 					break;
 
 				case ParseCode::Invalid:
-					DEBUG_LOG("RESULT: Invalid");
-
 					this->finalizeElement(activeElement);
 					activeElement = nullptr;
 					break;
@@ -131,14 +109,11 @@ namespace Markdown
 
 				if (result.element)
 					previousElement = result.element;
-
-				DEBUG_LOG(std::string("TYPE: ") + (result.element ? typeToString(result.element->getType()) : "NONE"));
 			}
 		}
 
 		if (activeElement)
 		{
-			DEBUG_LOG(std::string("Finalize element ") + std::to_string(reinterpret_cast<size_t>(activeElement.get())));
 			activeElement->finalize();
 			this->addElement(activeElement);
 		}

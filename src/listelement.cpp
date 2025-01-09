@@ -1,7 +1,6 @@
 #include "listelement.h"
 #include "linebreakelement.h"
 #include "blankelement.h"
-#include "util.h"
 
 #include <sstream>
 #include <cassert>
@@ -90,7 +89,6 @@ namespace Markdown
 
     void ListItem::finalize()
     {
-        DEBUG_LOG("ListItem: Finalize");
         std::string text = ListElement::getListItemText(this->buffer);
 
         for (auto& el : this->elements)
@@ -199,7 +197,6 @@ namespace Markdown
 
         if (result.code == ParseCode::ElementCompleteParseNext)
         {
-            DEBUG_LOG("ListElement: Last item finalize");
             this->getLastItem()->finalize();
             result = this->parse(line, previous);
         }
@@ -223,7 +220,6 @@ namespace Markdown
 
     void ListElement::finalize()
     {
-        DEBUG_LOG("ListElement: Finalize");
         for (auto item : this->elements)
         {
             item->finalize();
