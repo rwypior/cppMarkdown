@@ -258,16 +258,18 @@ namespace Markdown
 	LinkStyle::LinkSpan::LinkSpan(const std::string& text, const std::string& url, std::shared_ptr<MarkdownStyle> style)
 		: Span(text, style)
 		, url(url)
-	{ }
-
-	std::string LinkStyle::LinkSpan::getText() const
 	{
-		return this->text;
+		auto spans = this->findStyle(text, 0, {}, SpanSearchFlags::Normal);
+		if (spans.size() > 1 || (spans.size() == 1 && spans.front()->style))
+		{
+			this->text = "";
+			this->children = std::move(spans);
+		}
 	}
 
 	std::string LinkStyle::LinkSpan::getHtml() const
 	{
-		return "<a href=\"" + this->url + "\">" + this->text + "</a>";
+		return "<a href=\"" + this->url + "\">" + Span::getHtml() + "</a>";
 	}
 
 	std::string LinkStyle::LinkSpan::getMarkdown() const

@@ -171,7 +171,6 @@ namespace Markdown
 
             LinkSpan(const std::string& text, const std::string& url, std::shared_ptr<MarkdownStyle> style);
 
-            virtual std::string getText() const override;
             virtual std::string getHtml() const override;
             virtual std::string getMarkdown() const override;
         };

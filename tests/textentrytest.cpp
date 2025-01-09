@@ -58,7 +58,7 @@ TEST_CASE("Mixed links", "[textentry]")
 TEST_CASE("Links with styles", "[textentry]")
 {
 	Markdown::TextEntry te("[**Bold** text](link)");
-	REQUIRE(te.getHtml() == "<a href=\"link\"><b>Text</b></a>");
+	REQUIRE(te.getHtml() == "<a href=\"link\"><b>Bold</b> text</a>");
 }
 
 TEST_CASE("Inline code", "[textentry]")
