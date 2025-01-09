@@ -61,7 +61,6 @@ namespace Markdown
 					if (found && !good)
 					{
 						recheck = str.find(this->markdownClosing, recheck + style->markdownOpening.size());
-						//recheck += style->markdownOpening.size();
 						break;
 					}
 					else if (found)
@@ -105,7 +104,6 @@ namespace Markdown
 		if (markdown.empty())
 			return;
 
-		//std::vector<std::unique_ptr<Span>> foundSpans = TextEntry::findStyle(markdown, 0, {}, searchFlags);
 		std::vector<std::unique_ptr<Span>> foundSpans = this->findStyle(markdown, 0, {}, searchFlags);
 
 		auto& spans = this->getSpans();
@@ -116,7 +114,6 @@ namespace Markdown
 			for (auto& span : foundSpans)
 			{
 				spans.back()->children.emplace_back(std::move(span));
-				//this->spans.emplace_back(content.substr(span.from, span.to - span.from), span.style, span.level);
 			}
 		}
 		else
@@ -124,7 +121,6 @@ namespace Markdown
 			for (auto& span : foundSpans)
 			{
 				spans.emplace_back(std::move(span));
-				//this->spans.emplace_back(content.substr(span.from, span.to - span.from), span.style, span.level);
 			}
 		}
 
@@ -348,16 +344,6 @@ namespace Markdown
 			// Fill in the rest of the source
 			spans.emplace_back(std::make_unique<Span>(source.substr(pos), nullptr));
 
-		
-
-		//// Fill in the rest of the source
-		//if (pos != source.size())
-		//	spans.emplace_back(std::make_unique<Span>(source.substr(pos), nullptr));
-
-		//// If no spans were found add an empty style span
-		//if (spans.empty())
-		//	spans.emplace_back(std::make_unique<Span>(source, nullptr));
-
 		return spans;
 	}
 
@@ -387,10 +373,6 @@ namespace Markdown
 		return text;
 	}
 
-	// TODO:
-	// span.text contains the markdown opening
-	// it has to contain only the text
-
 	std::string TextEntry::getHtml(HtmlOptions flags) const
 	{
 		std::deque<std::pair<size_t, Style>> tags;
@@ -401,27 +383,7 @@ namespace Markdown
 		for (const auto& span : this->spans)
 		{
 			html += span->getHtml();
-
-			/*if (!skipDefaultTags && (tags.empty() || span->level > tags.back().first))
-			{
-				tags.push_back({ span->level, span->style->style });
-				html += span->style->style.openingTag;
-			}
-			else if (!tags.empty())
-			{
-				Style closingTag = tags.back().second;
-				tags.pop_back();
-				html += closingTag.closingTag;
-			}
-
-			html += span->text;*/
 		}
-
-		/*if (!skipDefaultTags && !tags.empty())
-		{
-			Style closingTag = tags.back().second;
-			html += closingTag.closingTag;
-		}*/
 
 		return html;
 	}

@@ -56,7 +56,6 @@ namespace Markdown
             else
             {
                 ParseResult parseResult;
-                //auto parseResult = result.element->parse(line, previous);
                 if (active)
                     parseResult = result.element->supply(line, previous);
                 else

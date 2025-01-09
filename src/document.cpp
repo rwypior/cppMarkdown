@@ -307,8 +307,7 @@ namespace Markdown
 		return result;
 	}
 
-	// 
-
+	// Subelement parser
 
 	void SubelementParser::parseSubelements(const std::string& source)
 	{
@@ -354,17 +353,14 @@ namespace Markdown
 	{
 		ElementContainer& container = this->getContainer();
 
-		//if (container.elementsCount() == 1)
-		{
-			const auto& element = container.front();
-			if ((1 << element->getType()) & mask)
-				return;
+		const auto& element = container.front();
+		if ((1 << element->getType()) & mask)
+			return;
 
-			TextEntry& text = this->getText();
+		TextEntry& text = this->getText();
 
-			text.parse(element->getText());
-			container.clear();
-		}
+		text.parse(element->getText());
+		container.clear();
 	}
 
 	void SubelementUnpacker::unpackElement(ElementContainer::Container::const_iterator it)

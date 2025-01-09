@@ -76,7 +76,7 @@ TEST_CASE("List with paragraph", "[list]")
 3. Third
     Paragraph)list");
 	INFO(el.dump());
-	//REQUIRE(el.elements.elementsCount() == 3);
+
 	REQUIRE(el.size() == 3);
 	REQUIRE(el.getText() == R"list(1. First
 2. Second
@@ -91,7 +91,7 @@ TEST_CASE("List with paragraph in the middle", "[list]")
 2. Second
     Paragraph
 3. Third)list");
-	//REQUIRE(el.elements.elementsCount() == 3);
+
 	REQUIRE(el.size() == 3);
 	REQUIRE(el.getText() == R"list(1. First
 2. Second
@@ -107,7 +107,7 @@ TEST_CASE("List with multiline paragraph in the middle", "[list]")
     Paragraph
     Another line
 3. Third)list");
-	//REQUIRE(el.elements.elementsCount() == 3);
+
 	REQUIRE(el.size() == 3);
 	REQUIRE(el.getText() == R"list(1. First
 2. Second
@@ -139,34 +139,19 @@ Another line
 
 TEST_CASE("Nested list", "[list]")
 {
-	//{
-	//	Markdown::ListElement el(R"list(1. First
- //   1. Nested 1
- //   2. Nested 2)list");
-	//	INFO(el.dump());
-
-	//	REQUIRE(el.getHtml() == "<ol>"
-	//		"<li>First<ol>"
-	//		"<li>Nested 1</li>"
-	//		"<li>Nested 2</li>"
-	//		"</ol></li></ol>");
-	//}
-
-	{
-		Markdown::ListElement el(R"list(1. First
+	Markdown::ListElement el(R"list(1. First
 2. Second
     1. Nested 1
     2. Nested 2
     Paragraph)list");
-		INFO(el.dump());
+	INFO(el.dump());
 
-		REQUIRE(el.getHtml() == "<ol>"
-			"<li>First</li>"
-			"<li>Second<ol>"
-			"<li>Nested 1</li>"
-			"<li>Nested 2</li>"
-			"</ol>Paragraph</li></ol>");
-	}
+	REQUIRE(el.getHtml() == "<ol>"
+		"<li>First</li>"
+		"<li>Second<ol>"
+		"<li>Nested 1</li>"
+		"<li>Nested 2</li>"
+		"</ol>Paragraph</li></ol>");
 }
 
 TEST_CASE("Simple list in document", "[list]")

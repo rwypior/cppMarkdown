@@ -13,7 +13,6 @@ namespace Markdown
     {
         if (!text.empty())
             this->parse(ListElement::getListItemText(text), nullptr);
-            //this->elements.parse(ListElement::getListItemText(text));
     }
 
     ListItem::ListItem(ListElement* parent)
@@ -147,7 +146,6 @@ namespace Markdown
     {
         std::string result = Element::dump(indent) + "\n";
         result += ElementContainer::dump(indent);
-        //result += this->elements.dump(indent);
         return result;
     }
 

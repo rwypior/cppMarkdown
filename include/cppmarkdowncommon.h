@@ -55,10 +55,7 @@ namespace Markdown
     {
         Discard, // Discard current component
         ReplacePrevious, // Replace previous element with current one
-        //ParseNext, // Parse next element with current element as previous
         ElementComplete, // Add current element, and previous element if present
-        //ParseNextAcceptPrevious, // Parse next element and add previous element
-        //ElementCompleteDiscardPrevious, // Add current element and discard previous element
         ElementCompleteParseNext, // Add current element and parse current line again
         RequestMore, // Parse next element and pass to current element
         Invalid // Element is invalid
@@ -179,7 +176,7 @@ namespace Markdown
     {
         text.erase(text.begin(), std::find_if(text.begin(), text.end(), [](char ch) {
             return !std::isspace(ch);
-            }));
+        }));
     }
 
     inline std::string ltrimmed(const std::string& text)
@@ -193,7 +190,7 @@ namespace Markdown
     {
         text.erase(std::find_if(text.rbegin(), text.rend(), [](char ch) {
             return !std::isspace(ch);
-            }).base(), text.end());
+        }).base(), text.end());
     }
 
     inline std::string rtrimmed(const std::string& text)
@@ -219,8 +216,6 @@ namespace Markdown
 
     void replace_in(std::string &source, const std::string& target, const std::string& replacement);
     std::string replace(std::string source, const std::string& target, const std::string& replacement);
-
-    std::string dumpElement(const Element& element, int indent = 0);
 }
 
 #endif

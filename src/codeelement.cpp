@@ -28,24 +28,10 @@ namespace Markdown
         {
             // Not started with tabs
             return ParseResult(ParseCode::Invalid);
-
-            //if (this->text.empty())
-            //{
-            //    // Had no text before this iteration - invalid for code block
-            //    return ParseResult(ParseCode::Invalid);
-            //}
-            //else
-            //{
-            //    // Had some text before - finish the element
-            //    //return ParseResult(ParseCode::ElementComplete);
-            //    return ParseResult(ParseCode::ElementCompleteParseNext);
-            //}
         }
 
         std::string code = getCodeText(line);
         this->text += code;
-
-        //return ParseResult(ParseCode::RequestMore);
 
         // Previous element must be a line break
         // Since this is block-type element anyways - the line break is redundant - remove it
