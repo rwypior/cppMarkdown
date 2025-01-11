@@ -78,6 +78,9 @@ namespace Markdown
 
 				switch (result.code)
 				{
+				case ParseCode::Discard:
+					break;
+
 				case ParseCode::ReplacePrevious:
 					this->finalizeElement(activeElement);
 					activeElement = nullptr;
@@ -337,7 +340,7 @@ namespace Markdown
 		}
 	}
 
-	void SubelementUnpacker::unpackTo(SubelementUnpacker& target, Type mask)
+	void SubelementUnpacker::unpackTo(SubelementUnpacker& target)
 	{
 		ElementContainer& container = this->getContainer();
 

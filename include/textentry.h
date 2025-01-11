@@ -5,10 +5,12 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace Markdown
 {
     struct MarkdownStyle;
+    struct GenericStyle;
     struct Span;
     using StyleContainer = std::vector<std::shared_ptr<MarkdownStyle>>;
 
@@ -35,7 +37,6 @@ namespace Markdown
     protected:
         virtual std::vector<std::unique_ptr<Span>> findStyle(
             const std::string& source,
-            size_t level,
             const std::vector<std::string>& autoescape,
             SpanSearchFlags flags
         );
@@ -48,6 +49,7 @@ namespace Markdown
         std::shared_ptr<MarkdownStyle> style;
 
         Span(const std::string& text, std::shared_ptr<MarkdownStyle> style);
+        virtual ~Span() = default;
 
         virtual Container& getSpans() override;
         virtual const Container& getSpans() const override;
@@ -62,7 +64,6 @@ namespace Markdown
     protected:
         virtual std::vector<std::unique_ptr<Span>> findStyle(
             const std::string& source,
-            size_t level,
             const std::vector<std::string>& autoescape,
             SpanSearchFlags flags
         ) override;
@@ -90,17 +91,15 @@ namespace Markdown
         std::string getMarkdown() const;
 
         bool empty() const;
-
-        static std::vector<std::unique_ptr<Span>> findStyle(const std::string& source, size_t level = 0, const std::vector<std::string>& autoescape = {}, SpanSearchFlags flags = SpanSearchFlags::AddEmpty);
     };
 
     struct MarkdownStyle
     {
         struct Result
         {
-            std::unique_ptr<Span> span = nullptr;
             size_t position; // Position of first markdown character
             size_t length; // Length of markdown sequence
+            std::unique_ptr<Span> span = nullptr;
 
             Result(size_t position = std::string::npos, size_t length = std::string::npos, std::unique_ptr<Span> &&span = nullptr)
                 : position(position)
@@ -138,6 +137,8 @@ namespace Markdown
             , acceptsSubstyles(acceptsSubstyles)
             , autoescape(autoescape)
         { }
+
+        virtual ~MarkdownStyle() = default;
 
         template<typename T = GenericStyle>
         static std::shared_ptr<T> makeHtml(const std::string& opening, const std::string& closing)

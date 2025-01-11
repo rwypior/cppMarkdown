@@ -43,7 +43,7 @@ namespace Markdown
         return Type::ListItem;
     }
 
-    ParseResult ListItem::parse(const std::string& line, std::shared_ptr<Element> previous)
+    ParseResult ListItem::parse(const std::string& line, std::shared_ptr<Element>)
     {
         ListElement::ListMarker marker = ListElement::getListLevel(line);
         this->level = marker.level;
@@ -156,7 +156,7 @@ namespace Markdown
         ElementContainer::parse(text);
     }
 
-    ParseResult ListElement::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active, Type mask)
+    ParseResult ListElement::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active, Type)
     {
         return active ? this->supply(line, previous) : this->parse(line, previous);
     }
@@ -166,13 +166,13 @@ namespace Markdown
         return Type::List;
     }
 
-    void ListElement::addElement(std::shared_ptr<Element> element)
+    void ListElement::addElement(std::shared_ptr<Element>)
     { }
 
-    void ListElement::addElement(std::shared_ptr<Element> element, Container::const_iterator it)
+    void ListElement::addElement(std::shared_ptr<Element>, Container::const_iterator)
     { }
 
-    ParseResult ListElement::parse(const std::string& line, std::shared_ptr<Element> previous)
+    ParseResult ListElement::parse(const std::string& line, std::shared_ptr<Element>)
     {
         ListMarker marker = getListLevel(line);
 

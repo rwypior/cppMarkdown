@@ -15,7 +15,7 @@ namespace Markdown
         return Type::Blockquote;
     }
 
-    ParseResult BlockquoteElement::parse(const std::string& line, std::shared_ptr<Element> previous)
+    ParseResult BlockquoteElement::parse(const std::string& line, std::shared_ptr<Element>)
     {
         int level = getBlockquoteLevel(line);
 
@@ -29,7 +29,7 @@ namespace Markdown
         return ParseResult(ParseCode::RequestMore);
     }
 
-    ParseResult BlockquoteElement::supply(const std::string& line, std::shared_ptr<Element> previous)
+    ParseResult BlockquoteElement::supply(const std::string& line, std::shared_ptr<Element>)
     {
         if (line.empty())
             return ParseResult(ParseCode::ElementCompleteParseNext);

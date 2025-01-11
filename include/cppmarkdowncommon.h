@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <algorithm>
 
 namespace Markdown
 {
@@ -41,13 +42,13 @@ namespace Markdown
 // Enable bitwise operations on enum class
 // Best to use on namespace-level
 #define DEFINE_BITFIELD(Enum) \
-	static Bitfield<Enum> operator |(Enum a, Enum b) { return static_cast<unsigned int>(a) | static_cast<unsigned int>(b); } \
-	static Bitfield<Enum> operator &(Enum a, Enum b) { return static_cast<unsigned int>(a) & static_cast<unsigned int>(b); } \
-    static Bitfield<Enum> operator |=(Enum& a, Enum b) { return a = static_cast<Enum>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b)); } \
-	static Bitfield<Enum> operator &=(Enum& a, Enum b) { return a = static_cast<Enum>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b)); } \
-    static Bitfield<Enum> operator <<(unsigned int a, Enum b) { return static_cast<Enum>(a << static_cast<unsigned int>(b)); } \
-    static Bitfield<Enum> operator >>(unsigned int a, Enum b) { return static_cast<Enum>(a >> static_cast<unsigned int>(b)); } \
-    static Bitfield<Enum> operator ~(Enum a) { return static_cast<Enum>(~static_cast<unsigned int>(a)); }
+	static inline Bitfield<Enum> operator |(Enum a, Enum b) { return static_cast<unsigned int>(a) | static_cast<unsigned int>(b); } \
+	static inline Bitfield<Enum> operator &(Enum a, Enum b) { return static_cast<unsigned int>(a) & static_cast<unsigned int>(b); } \
+    static inline Bitfield<Enum> operator |=(Enum& a, Enum b) { return a = static_cast<Enum>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b)); } \
+	static inline Bitfield<Enum> operator &=(Enum& a, Enum b) { return a = static_cast<Enum>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b)); } \
+    static inline Bitfield<Enum> operator <<(unsigned int a, Enum b) { return static_cast<Enum>(a << static_cast<unsigned int>(b)); } \
+    static inline Bitfield<Enum> operator >>(unsigned int a, Enum b) { return static_cast<Enum>(a >> static_cast<unsigned int>(b)); } \
+    static inline Bitfield<Enum> operator ~(Enum a) { return static_cast<Enum>(~static_cast<unsigned int>(a)); }
 
     std::string getMarkdownText(const std::string& line);
 
@@ -95,13 +96,13 @@ namespace Markdown
 
     std::string typeToString(Type type);
 
-    struct Element;
+    class Element;
 
     struct ParseResult
     {
-        std::shared_ptr<Element> element;
         ParseCode code;
         ParseFlags flags = ParseFlags::None;
+        std::shared_ptr<Element> element;
 
         ParseResult(ParseCode code = ParseCode::Invalid, ParseFlags flags = ParseFlags::None, std::shared_ptr<Element> element = nullptr)
             : code(code)
@@ -120,6 +121,8 @@ namespace Markdown
     public:
         ElementOptions options = ElementOptions::Normal;
         Element* parent = nullptr;
+
+        virtual ~Element() = default;
 
         // Get element's type
         virtual Type getType() const = 0;

@@ -36,6 +36,63 @@ namespace Markdown
 		return result;
 	}
 
+	std::vector<std::unique_ptr<Span>> findStyle(
+		const std::string& source,
+		const std::vector<std::string>& autoescape,
+		SpanSearchFlags flags
+	)
+	{
+		StyleContainer stylemap{
+			std::make_shared<GenericStyle>("***", "***", Style("<b><i>", "</i></b>")),
+			std::make_shared<GenericStyle>("___", "___", Style("<b><i>", "</i></b>")),
+			std::make_shared<GenericStyle>("__*", "*__", Style("<b><i>", "</i></b>")),
+			std::make_shared<GenericStyle>("**_", "_**", Style("<b><i>", "</i></b>")),
+			std::make_shared<GenericStyle>("**", "**", Style("<b>", "</b>")),
+			std::make_shared<GenericStyle>("__", "__", Style("<b>", "</b>")),
+			std::make_shared<GenericStyle>("``", "``", Style("<code>", "</code>"), false, std::vector<std::string>({"`"})),
+			std::make_shared<GenericStyle>("*", "*", Style("<i>", "</i>")),
+			std::make_shared<GenericStyle>("_", "_", Style("<i>", "</i>")),
+			std::make_shared<GenericStyle>("`", "`", Style("<code>", "</code>"), false),
+			std::make_shared<LinkStyle>(),
+		};
+
+		std::vector<std::unique_ptr<Span>> spans;
+
+		size_t pos = 0;
+
+		while (pos != std::string::npos)
+		{
+			MarkdownStyle::Result style = findFirst(source, pos, stylemap, autoescape);
+			if (!style)
+				break;
+
+			std::string styleEndingStr = style.span->style->markdownClosing;
+			size_t idx = style.position;
+
+			// If some characters were skipped fill in the blank with empty style span
+			if (idx != pos)
+				spans.emplace_back(std::make_unique<Span>(source.substr(pos, idx - pos), nullptr));
+
+			pos = idx + style.length;
+
+			spans.push_back(std::move(style.span));
+		}
+
+		if (spans.empty())
+		{
+			if (flags & SpanSearchFlags::AddEmpty)
+			{
+				// If no spans were found add an empty style span
+				spans.emplace_back(std::make_unique<Span>(source, nullptr));
+			}
+		}
+		else if (pos != source.size())
+			// Fill in the rest of the source
+			spans.emplace_back(std::make_unique<Span>(source.substr(pos), nullptr));
+
+		return spans;
+	}
+
 	// Generic style
 
 	MarkdownStyle::Result GenericStyle::findIn(const std::string& str, size_t offset, const StyleContainer& stylemap) const
@@ -91,12 +148,11 @@ namespace Markdown
 
 	std::vector<std::unique_ptr<Span>> SpanContainer::findStyle(
 		const std::string& source,
-		size_t level,
 		const std::vector<std::string>&,
 		SpanSearchFlags flags
 	)
 	{
-		return TextEntry::findStyle(source, level, {}, flags);
+		return Markdown::findStyle(source, {}, flags);
 	}
 
 	void SpanContainer::parse(const std::string& markdown, const std::shared_ptr<MarkdownStyle> defaultStyle, SpanSearchFlags searchFlags)
@@ -104,7 +160,7 @@ namespace Markdown
 		if (markdown.empty())
 			return;
 
-		std::vector<std::unique_ptr<Span>> foundSpans = this->findStyle(markdown, 0, {}, searchFlags);
+		std::vector<std::unique_ptr<Span>> foundSpans = this->findStyle(markdown, {}, searchFlags);
 
 		auto& spans = this->getSpans();
 		if (defaultStyle)
@@ -139,12 +195,14 @@ namespace Markdown
 
 	std::vector<std::unique_ptr<Span>> Span::findStyle(
 		const std::string& source,
-		size_t level,
 		const std::vector<std::string>& autoescape,
 		SpanSearchFlags flags
 	)
 	{
-		return TextEntry::findStyle(source, level, this->style ? this->style->autoescape : std::vector<std::string>{}, flags);
+		auto ae = autoescape;
+		if (this->style)
+			ae.insert(ae.end(), this->style->autoescape.begin(), this->style->autoescape.end());
+		return Markdown::findStyle(source, ae, flags);
 	}
 
 	SpanContainer::Container& Span::getSpans()
@@ -255,7 +313,7 @@ namespace Markdown
 		: Span(text, style)
 		, url(url)
 	{
-		auto spans = this->findStyle(text, 0, {}, SpanSearchFlags::Normal);
+		auto spans = this->findStyle(text, {}, SpanSearchFlags::Normal);
 		if (spans.size() > 1 || (spans.size() == 1 && spans.front()->style))
 		{
 			this->text = "";
@@ -289,64 +347,6 @@ namespace Markdown
 
 	// Text entry
 
-	std::vector<std::unique_ptr<Span>> TextEntry::findStyle(
-		const std::string& source,
-		size_t level,
-		const std::vector<std::string>& autoescape,
-		SpanSearchFlags flags
-	)
-	{
-		StyleContainer stylemap{
-			std::make_shared<GenericStyle>("***", "***", Style("<b><i>", "</i></b>")),
-			std::make_shared<GenericStyle>("___", "___", Style("<b><i>", "</i></b>")),
-			std::make_shared<GenericStyle>("__*", "*__", Style("<b><i>", "</i></b>")),
-			std::make_shared<GenericStyle>("**_", "_**", Style("<b><i>", "</i></b>")),
-			std::make_shared<GenericStyle>("**", "**", Style("<b>", "</b>")),
-			std::make_shared<GenericStyle>("__", "__", Style("<b>", "</b>")),
-			std::make_shared<GenericStyle>("``", "``", Style("<code>", "</code>"), false, std::vector<std::string>({"`"})),
-			std::make_shared<GenericStyle>("*", "*", Style("<i>", "</i>")),
-			std::make_shared<GenericStyle>("_", "_", Style("<i>", "</i>")),
-			std::make_shared<GenericStyle>("`", "`", Style("<code>", "</code>"), false),
-			std::make_shared<LinkStyle>(),
-		};
-
-		std::vector<std::unique_ptr<Span>> spans;
-
-		size_t pos = 0;
-
-		while (pos != std::string::npos)
-		{
-			MarkdownStyle::Result style = findFirst(source, pos, stylemap, autoescape);
-			if (!style)
-				break;
-
-			std::string styleEndingStr = style.span->style->markdownClosing;
-			size_t idx = style.position;
-
-			// If some characters were skipped fill in the blank with empty style span
-			if (idx != pos)
-				spans.emplace_back(std::make_unique<Span>(source.substr(pos, idx - pos), nullptr));
-
-			pos = idx + style.length;
-
-			spans.push_back(std::move(style.span));
-		}
-
-		if (spans.empty())
-		{
-			if (flags & SpanSearchFlags::AddEmpty)
-			{
-				// If no spans were found add an empty style span
-				spans.emplace_back(std::make_unique<Span>(source, nullptr));
-			}
-		}
-		else if (pos != source.size())
-			// Fill in the rest of the source
-			spans.emplace_back(std::make_unique<Span>(source.substr(pos), nullptr));
-
-		return spans;
-	}
-
 	TextEntry::TextEntry(const std::string& content, const std::shared_ptr<MarkdownStyle> defaultStyle)
 	{
 		this->parse(content, defaultStyle);
@@ -373,11 +373,9 @@ namespace Markdown
 		return text;
 	}
 
-	std::string TextEntry::getHtml(HtmlOptions flags) const
+	std::string TextEntry::getHtml(HtmlOptions) const
 	{
 		std::deque<std::pair<size_t, Style>> tags;
-
-		bool skipDefaultTags = flags & HtmlOptions::SkipDefaultTags;
 
 		std::string html;
 		for (const auto& span : this->spans)

@@ -1,3 +1,6 @@
+#ifndef _h_cppmarkdown
+#define _h_cppmarkdown
+
 #include "cppmarkdowncommon.h"
 #include "document.h"
 #include "textentry.h"
@@ -10,3 +13,5 @@
 #include "lineelement.h"
 #include "listelement.h"
 #include "paragraphelement.h"
+
+#endif

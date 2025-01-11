@@ -65,6 +65,7 @@ namespace Markdown
         case Heading::Heading4: return MarkdownStyle::makeHtml("<h4>", "</h4>");
         case Heading::Heading5: return MarkdownStyle::makeHtml("<h5>", "</h5>");
         case Heading::Heading6: return MarkdownStyle::makeHtml("<h6>", "</h6>");
+        case Heading::Invalid: break;
         }
 
         assert(!"Invalid heading element");

@@ -36,7 +36,7 @@ namespace Markdown
 
     bool LineBreakElement::isAllWhitespace(const std::string& line)
     {
-        return std::all_of(line.begin(), line.end(), std::isspace);
+        return std::all_of(line.begin(), line.end(), [](char c) { return std::isspace(c); });
     }
 
     bool LineBreakElement::isSkippable(const std::string& line)

@@ -38,7 +38,7 @@ namespace Markdown
         return ParseResult(ParseCode::RequestMore, ParseFlags::ErasePrevious);
     }
 
-    ParseResult CodeElement::supply(const std::string& line, std::shared_ptr<Element> previous)
+    ParseResult CodeElement::supply(const std::string& line, std::shared_ptr<Element>)
     {
         if (line.empty())
             return ParseResult(ParseCode::ElementCompleteParseNext);

@@ -101,7 +101,7 @@ namespace Markdown
     class SubelementUnpacker : public SubelementContainer
     {
     protected:
-        void unpackTo(SubelementUnpacker& target, Type mask = Type::None);
+        void unpackTo(SubelementUnpacker& target);
         void unpackToText(Type mask = Type::None);
         void unpackElement(ElementContainer::Container::const_iterator it);
 
