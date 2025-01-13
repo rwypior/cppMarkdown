@@ -1,0 +1,197 @@
+#include "ext/tableelement.h"
+
+namespace Markdown
+{
+    TableElement::TableElement(const std::string& content)
+    {
+        if (!content.empty())
+            this->parse(content, nullptr);
+    }
+
+    Type TableElement::getType() const
+    {
+        return Type::Extension;
+    }
+
+    ParseResult TableElement::parse(const std::string& line, std::shared_ptr<Element> previous)
+    {
+        size_t countPipes = std::count(line.begin(), line.end(), '|');
+        if (countPipes > 0)
+        {
+            this->setColumns(countPipes + 1);
+            return ParseResult(ParseCode::RequestMore);
+        }
+
+        return ParseResult(ParseCode::Discard);
+    }
+
+    ParseResult TableElement::supply(const std::string& line, std::shared_ptr<Element> previous)
+    {
+        if (!(this->flags & Flags::Started))
+        {
+            if (tableLineValid(line, this->columnCount() - 1))
+            {
+                this->flags |= Flags::Started;
+                return ParseResult(ParseCode::RequestMore);
+            }
+            else
+                return ParseResult(ParseCode::Discard);
+        }
+
+        size_t countPipes = std::count(line.begin(), line.end(), '|');
+        if (countPipes != this->columnCount() - 1)
+        {
+            if (this->rows.empty())
+                return ParseResult(ParseCode::Discard);
+
+            return ParseResult(ParseCode::ElementComplete);
+        }
+
+        // TODO - parse rows
+
+        return ParseResult(ParseCode::RequestMore);
+    }
+
+    size_t TableElement::columnCount() const
+    {
+        return this->header.size();
+    }
+
+    void TableElement::setColumns(size_t n)
+    {
+        this->header.resize(n);
+    }
+
+    void TableElement::setColumns(const std::initializer_list<Cell>& headerCells)
+    {
+        this->setColumns(headerCells.size());
+
+        size_t i = 0;
+        for (const auto& Cell : headerCells)
+        {
+            this->header.at(i++) = *(headerCells.begin() + i);
+        }
+    }
+
+    size_t TableElement::rowCount() const
+    {
+        return this->rows.size();
+    }
+
+    void TableElement::addRow(const std::initializer_list<Cell>& cells)
+    {
+        this->rows.emplace_back();
+        for (const Cell& cell : cells)
+        {
+            this->rows.back().push_back(cell);
+        }
+    }
+
+    TableElement::Cell* TableElement::getCell(size_t column, size_t row)
+    {
+        if (row < this->rows.size() && column < this->rows.at(row).size())
+            return &this->rows.at(row).at(column);
+
+        return nullptr;
+    }
+
+    TableElement::Cell* TableElement::getHeaderCell(size_t column)
+    {
+        if (column < this->header.size())
+            return &this->header.at(column);
+
+        return nullptr;
+    }
+
+    TableElement::Row* TableElement::getRow(size_t row)
+    {
+        if (row < this->rows.size())
+            return &this->rows.at(row);
+
+        return nullptr;
+    }
+
+    TableElement::Row* TableElement::getHeader()
+    {
+        return &this->header;
+    }
+
+    std::string TableElement::getText() const
+    {
+        std::vector<size_t> lengths(this->columnCount(), 0);
+        size_t i = 0;
+        for (const auto &th : this->header)
+        {
+            auto len = th.getText().length();
+            if (len > lengths.at(i))
+                lengths.at(i) = len;
+            i++;
+        }
+
+        for (const auto &row : this->rows)
+        {
+            i = 0;
+            for (const auto &td : row)
+            {
+                auto len = td.getText().length();
+                if (len > lengths.at(i))
+                    lengths.at(i) = len;
+                i++;
+            }
+        }
+
+        std::string result = "";
+
+        i = 0;
+        for (const auto &th : this->header)
+        {
+            size_t len = th.getText().length();
+            result += th.getText() + std::string(lengths.at(i) - len, ' ') + '|';
+        }
+
+        return result;
+    }
+
+    std::string TableElement::getHtml() const
+    {
+        std::string result = "<table><tr>";
+        for (const auto &th : this->header)
+        {
+            result += std::string("<th>") + th.getHtml() + "</th>";
+        }
+        result += "</tr>";
+        for (const auto &row : this->rows)
+        {
+            result += "<tr>";
+            for (const auto &td : row)
+            {
+                result += std::string("<td>") + td.getHtml() + "</td>";
+            }
+            result += "</tr>";
+        }
+        result += "</table>";
+        return result;
+    }
+
+    bool TableElement::tableLineValid(const std::string &line, size_t requiredPipes)
+    {
+        size_t pipeCount = 0;
+        char last = '\0';
+        for (char c : line)
+        {
+            switch(c)
+            {
+                case '|':
+                    if (last != '-')
+                        return false;
+                    ++pipeCount;
+                    break;
+                case '-':
+                    break;
+                default:
+                    return false;
+            }
+        }
+        return pipeCount == requiredPipes;
+    }
+}

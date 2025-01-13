@@ -46,7 +46,7 @@ namespace Markdown
         Container elements;
 
         template<typename T, typename... Args>
-        ParseResult parseElement(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr, Type mask = Type::None, Args... args)
+        static ParseResult parseElement(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr, Type mask = Type::None, Args... args)
         {
             ParseResult result;
             result.element = active ? active : std::make_shared<T>(args...);

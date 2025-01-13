@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include <algorithm>
+#include <functional>
 
 namespace Markdown
 {
@@ -83,7 +84,8 @@ namespace Markdown
         Table,
         LineBreak,
         Code,
-        Line
+        Line,
+        Extension
     };
     DEFINE_BITFIELD(Type);
 
@@ -165,6 +167,9 @@ namespace Markdown
             , closingTag(closingTag)
         { }
     };
+
+    using ParserPredicate = std::function<ParseResult(const std::string&, std::shared_ptr<Element>, std::shared_ptr<Element>, Type mask)>;
+    using ParserCollection = std::vector<ParserPredicate>;
 
     template<typename It>
     bool isNumber(It first, It second)

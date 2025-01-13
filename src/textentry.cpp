@@ -188,10 +188,20 @@ namespace Markdown
 
 	// Generic span
 
-	Span::Span(const std::string& text, std::shared_ptr<MarkdownStyle> style)
+	Span::Span(const std::string& text, std::shared_ptr<MarkdownStyle> style, const std::vector<std::unique_ptr<Span>>& children)
 		: text(text)
 		, style(style)
-	{ }
+	{
+		for (const auto& child : children)
+		{
+			this->children.push_back(child->clone());
+		}
+	}
+
+	std::unique_ptr<Span> Span::clone() const
+	{
+		return std::make_unique<Span>(this->text, this->style, this->children);
+	}
 
 	std::vector<std::unique_ptr<Span>> Span::findStyle(
 		const std::string& source,
@@ -309,8 +319,9 @@ namespace Markdown
 
 	// Link span
 
-	LinkStyle::LinkSpan::LinkSpan(const std::string& text, const std::string& url, std::shared_ptr<MarkdownStyle> style)
-		: Span(text, style)
+	LinkStyle::LinkSpan::LinkSpan(const std::string& text, const std::string& url,
+		std::shared_ptr<MarkdownStyle> style, const std::vector<std::unique_ptr<Span>>& children)
+		: Span(text, style, children)
 		, url(url)
 	{
 		auto spans = this->findStyle(text, {}, SpanSearchFlags::Normal);
@@ -319,6 +330,11 @@ namespace Markdown
 			this->text = "";
 			this->children = std::move(spans);
 		}
+	}
+
+	std::unique_ptr<Span> LinkStyle::LinkSpan::clone() const
+	{
+		return std::make_unique<LinkStyle::LinkSpan>(this->text, this->url, this->style, this->children);
 	}
 
 	std::string LinkStyle::LinkSpan::getHtml() const
@@ -350,6 +366,23 @@ namespace Markdown
 	TextEntry::TextEntry(const std::string& content, const std::shared_ptr<MarkdownStyle> defaultStyle)
 	{
 		this->parse(content, defaultStyle);
+	}
+
+	TextEntry::TextEntry(const TextEntry& b)
+	{
+		for (const auto& span : b.spans)
+		{
+			this->spans.push_back(b.spans.front()->clone());
+		}
+	}
+
+	TextEntry& TextEntry::operator=(const TextEntry& b)
+	{
+		for (const auto& span : b.spans)
+		{
+			this->spans.push_back(b.spans.front()->clone());
+		}
+		return *this;
 	}
 
 	SpanContainer::Container& TextEntry::getSpans()

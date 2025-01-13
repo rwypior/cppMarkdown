@@ -25,6 +25,8 @@ namespace Markdown
     public:
         using Container = std::vector<std::unique_ptr<Span>>;
 
+        virtual ~SpanContainer() = default;
+
         virtual void parse(const std::string& markdown, const std::shared_ptr<MarkdownStyle> defaultStyle = nullptr, SpanSearchFlags serachFlags = SpanSearchFlags::AddEmpty);
         virtual Container& getSpans() = 0;
         virtual const Container& getSpans() const = 0;
@@ -44,12 +46,14 @@ namespace Markdown
 
     struct Span : public SpanContainer
     {
-        std::vector<std::unique_ptr<Span>> children;
         std::string text;
         std::shared_ptr<MarkdownStyle> style;
+        std::vector<std::unique_ptr<Span>> children;
 
-        Span(const std::string& text, std::shared_ptr<MarkdownStyle> style);
+        Span(const std::string& text, std::shared_ptr<MarkdownStyle> style, const std::vector<std::unique_ptr<Span>>& children = {});
         virtual ~Span() = default;
+
+        virtual std::unique_ptr<Span> clone() const;
 
         virtual Container& getSpans() override;
         virtual const Container& getSpans() const override;
@@ -82,6 +86,11 @@ namespace Markdown
         std::vector<std::unique_ptr<Span>> spans;
 
         TextEntry(const std::string& content = "", const std::shared_ptr<MarkdownStyle> defaultStyle = nullptr);
+        TextEntry(const TextEntry& b);
+        TextEntry(TextEntry&& b) = default;
+
+        TextEntry& operator=(const TextEntry& b);
+        TextEntry& operator=(TextEntry&& b) = default;
 
         virtual Container& getSpans() override;
         virtual const Container& getSpans() const override;
@@ -170,7 +179,10 @@ namespace Markdown
         {
             std::string url;
 
-            LinkSpan(const std::string& text, const std::string& url, std::shared_ptr<MarkdownStyle> style);
+            LinkSpan(const std::string& text, const std::string& url, std::shared_ptr<MarkdownStyle> style,
+                     const std::vector<std::unique_ptr<Span>>& children = {});
+
+            std::unique_ptr<Span> clone() const override;
 
             virtual std::string getHtml() const override;
             virtual std::string getMarkdown() const override;

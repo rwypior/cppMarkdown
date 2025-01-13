@@ -1,4 +1,5 @@
 #include "document.h"
+#include "extensions.h"
 
 #include "paragraphelement.h"
 #include "linebreakelement.h"
@@ -12,6 +13,7 @@
 #include <fstream>
 #include <sstream>
 #include <cassert>
+#include <functional>
 
 namespace Markdown
 {
@@ -19,26 +21,24 @@ namespace Markdown
 
 	ParseResult ElementContainer::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active, Type mask)
 	{
-		if (ParseResult result = parseElement<LineElement>(line, previous, active, mask))
-			return result;
-		
-		if (ParseResult result = parseElement<ListElement>(line, previous, active, mask))
-			return result;
-		
-		if (ParseResult result = parseElement<CodeElement>(line, previous, active, mask))
-			return result;
+		ParserCollection parsers {
+			&parseElement<LineElement>,
+			&parseElement<ListElement>,
+			&parseElement<CodeElement>,
+			&parseElement<BlockquoteElement>,
+			&parseElement<HeadingElement>,
+			&parseElement<LineBreakElement>,
+			&parseElement<ParagraphElement>,
+		};
 
-		if (ParseResult result = parseElement<BlockquoteElement>(line, previous, active, mask))
-			return result;
+		ExtensionsManager& extensions = ExtensionsManager::getInstance();
+		extensions.extend(parsers);
 
-		if (ParseResult result = parseElement<HeadingElement>(line, previous, active, mask))
-			return result;
-
-		if (ParseResult result = parseElement<LineBreakElement>(line, previous, active, mask))
-			return result;
-		
-		if (ParseResult result = parseElement<ParagraphElement>(line, previous, active, mask))
-			return result;
+		for (auto pred : parsers)
+		{
+			if (ParseResult result = pred(line, previous, active, mask))
+				return result;
+		}
 
 		return ParseResult();
 	}
