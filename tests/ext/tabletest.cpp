@@ -1,4 +1,5 @@
 #include "ext/tableelement.h"
+#include "extensions.h"
 
 #include <catch2/catch_all.hpp>
 
@@ -92,4 +93,27 @@ TEST_CASE("Table single column", "[table]")
     REQUIRE(table.rowCount() == 1);
 
     REQUIRE(table.getCell(0, 0)->getText() == "Single");
+}
+
+TEST_CASE("Table parsing in document", "[table]")
+{
+    Markdown::registerStandardExtensions();
+
+    std::string tableMarkdown =
+        "A   |B \n"
+        "----|--\n"
+        "1   |2 \n"
+        "a   |b \n";
+    Markdown::Document doc;
+    doc.parse(tableMarkdown);
+
+    REQUIRE(doc.getHtml() == 
+        "<!DOCTYPE html><html><head></head><body>"
+        "<table>"
+        "<tr><th>A</th><th>B</th></tr>"
+        "<tr><td>1</td><td>2</td></tr>"
+        "<tr><td>a</td><td>b</td></tr>"
+        "</table>"
+        "</body></html>"
+    );
 }

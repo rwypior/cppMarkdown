@@ -1,6 +1,7 @@
 #include "extensions.h"
 
 #include "ext/tableelement.h"
+#include "lineelement.h"
 
 namespace Markdown
 {
@@ -8,7 +9,7 @@ namespace Markdown
 
     void StandardExtension::extend(ParserCollection& parsers)
     {
-
+        parsers.insert(parsers.begin(), { &ElementContainer::parseElement<TableElement> });
     }
 
     // Extension manager

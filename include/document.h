@@ -42,9 +42,6 @@ namespace Markdown
         Container::const_iterator begin() const;
         Container::const_iterator end() const;
 
-    protected:
-        Container elements;
-
         template<typename T, typename... Args>
         static ParseResult parseElement(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr, Type mask = Type::None, Args... args)
         {
@@ -66,6 +63,9 @@ namespace Markdown
 
             return result;
         }
+
+    protected:
+        Container elements;
 
         void finalizeElement(std::shared_ptr<Element>& activeElement);
     };
