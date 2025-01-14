@@ -372,7 +372,7 @@ namespace Markdown
 	{
 		for (const auto& span : b.spans)
 		{
-			this->spans.push_back(b.spans.front()->clone());
+			this->spans.push_back(span->clone());
 		}
 	}
 
@@ -380,7 +380,7 @@ namespace Markdown
 	{
 		for (const auto& span : b.spans)
 		{
-			this->spans.push_back(b.spans.front()->clone());
+			this->spans.push_back(span->clone());
 		}
 		return *this;
 	}

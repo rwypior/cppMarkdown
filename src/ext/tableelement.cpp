@@ -1,11 +1,12 @@
 #include "ext/tableelement.h"
 
+#include <sstream>
+
 namespace Markdown
 {
     TableElement::TableElement(const std::string& content)
     {
-        if (!content.empty())
-            this->parse(content, nullptr);
+        this->parseSubelements(content);
     }
 
     Type TableElement::getType() const
@@ -18,7 +19,7 @@ namespace Markdown
         size_t countPipes = std::count(line.begin(), line.end(), '|');
         if (countPipes > 0)
         {
-            this->setColumns(countPipes + 1);
+            this->setColumns(parseRow(line));
             return ParseResult(ParseCode::RequestMore);
         }
 
@@ -29,7 +30,7 @@ namespace Markdown
     {
         if (!(this->flags & Flags::Started))
         {
-            if (tableLineValid(line, this->columnCount() - 1))
+            if (tableLineValid(line, this->columnCount()))
             {
                 this->flags |= Flags::Started;
                 return ParseResult(ParseCode::RequestMore);
@@ -38,8 +39,8 @@ namespace Markdown
                 return ParseResult(ParseCode::Discard);
         }
 
-        size_t countPipes = std::count(line.begin(), line.end(), '|');
-        if (countPipes != this->columnCount() - 1)
+        size_t parsedColumns = parseColumnCount(line);
+        if (parsedColumns != this->columnCount())
         {
             if (this->rows.empty())
                 return ParseResult(ParseCode::Discard);
@@ -47,7 +48,7 @@ namespace Markdown
             return ParseResult(ParseCode::ElementComplete);
         }
 
-        // TODO - parse rows
+        this->addRow(parseRow(line));
 
         return ParseResult(ParseCode::RequestMore);
     }
@@ -73,6 +74,11 @@ namespace Markdown
         }
     }
 
+    void TableElement::setColumns(const Row& row)
+    {
+        this->header = row;
+    }
+
     size_t TableElement::rowCount() const
     {
         return this->rows.size();
@@ -87,7 +93,12 @@ namespace Markdown
         }
     }
 
-    TableElement::Cell* TableElement::getCell(size_t column, size_t row)
+    void TableElement::addRow(const Row& cells)
+    {
+        this->rows.push_back(cells);
+    }
+
+    TableElement::Cell* TableElement::getCell(size_t row, size_t column)
     {
         if (row < this->rows.size() && column < this->rows.at(row).size())
             return &this->rows.at(row).at(column);
@@ -173,11 +184,13 @@ namespace Markdown
         return result;
     }
 
+
     bool TableElement::tableLineValid(const std::string &line, size_t requiredPipes)
     {
-        size_t pipeCount = 0;
+        std::string trm = trimmed(line);
+        size_t pipeCount = 1;
         char last = '\0';
-        for (char c : line)
+        for (char c : trm)
         {
             switch(c)
             {
@@ -191,7 +204,33 @@ namespace Markdown
                 default:
                     return false;
             }
+            last = c;
         }
+
+        if (trm.back() == '|')
+            --pipeCount;
+
         return pipeCount == requiredPipes;
+    }
+
+    TableElement::Row TableElement::parseRow(const std::string& line)
+    {
+        auto splitted = split(line, '|');
+        TableElement::Row row(splitted.size());
+        size_t i = 0;
+        for (std::string s : splitted)
+        {
+            row.at(i++) = trimmed(s);
+        }
+
+        if (row.back().empty())
+            row.pop_back();
+
+        return row;
+    }
+
+    size_t TableElement::parseColumnCount(const std::string& line)
+    {
+        return std::count(line.begin(), line.end(), '|') + (line.back() != '|' ? 1 : 0);
     }
 }

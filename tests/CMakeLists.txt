@@ -10,7 +10,7 @@ project ("cppMarkdownTest")
 add_executable(cppMarkdownTest)
 target_sources(cppMarkdownTest PRIVATE "main.cpp" "documenttest.cpp" "textentrytest.cpp" "paragraphtest.cpp" "headingtest.cpp" "blockquotetest.cpp" "listtest.cpp" "codetest.cpp" "linetest.cpp" "linebreaktest.cpp" "elementcontainertest.cpp"
 "ext/tabletest.cpp"
-)
+ "commontest.cpp")
 add_dependencies(cppMarkdownTest cppMarkdown)
 
 set_property(TARGET cppMarkdownTest PROPERTY CXX_STANDARD 17)
@@ -31,5 +31,3 @@ target_link_libraries(cppMarkdownTest PRIVATE Catch2::Catch2WithMain)
 list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
 include(Catch)
 catch_discover_tests(cppMarkdownTest)
-
-add_test(test cppMarkdownTest)

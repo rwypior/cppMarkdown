@@ -48,6 +48,20 @@ namespace Markdown
         return source;
     }
 
+    std::vector<std::string> split(const std::string& source, char delimiter)
+    {
+        std::vector<std::string> result;
+        size_t i = 0;
+        size_t prev = 0;
+        while(i != std::string::npos)
+        {
+            i = source.find_first_of(delimiter, prev);
+            result.push_back(source.substr(prev, i - prev));
+            prev = i + 1;
+        }
+        return result;
+    }
+
     // Element
 
     std::string Element::dump(int indent) const

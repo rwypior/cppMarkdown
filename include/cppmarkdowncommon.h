@@ -224,6 +224,7 @@ namespace Markdown
 
     void replace_in(std::string &source, const std::string& target, const std::string& replacement);
     std::string replace(std::string source, const std::string& target, const std::string& replacement);
+    std::vector<std::string> split(const std::string& source, char delimiter);
 }
 
 #endif
