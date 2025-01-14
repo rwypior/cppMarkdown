@@ -63,6 +63,18 @@ namespace Markdown
         return "<code>" + this->text + "</code>";
     }
 
+    std::string CodeElement::getMarkdown() const
+    {
+        auto splitted = split(this->getText(), '\n');
+        std::string result;
+        for (const auto& line : splitted)
+        {
+            result += "    " + line + "\n";
+        }
+        result.pop_back();
+        return result;
+    }
+
     std::string CodeElement::getCodeText(const std::string& line)
     {
         if (line.empty())

@@ -53,4 +53,9 @@ namespace Markdown
 
 		return this->text.getHtml(options);
 	}
+
+	std::string ParagraphElement::getMarkdown() const
+	{
+		return this->text.getText();
+	}
 }

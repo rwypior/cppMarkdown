@@ -133,7 +133,7 @@ namespace Markdown
         size_t i = 0;
         for (const auto &th : this->header)
         {
-            auto len = th.getText().length();
+            auto len = th.getText().length() + 1;
             if (len > lengths.at(i))
                 lengths.at(i) = len;
             i++;
@@ -144,7 +144,7 @@ namespace Markdown
             i = 0;
             for (const auto &td : row)
             {
-                auto len = td.getText().length();
+                auto len = td.getText().length() + 1;
                 if (len > lengths.at(i))
                     lengths.at(i) = len;
                 i++;
@@ -157,8 +157,34 @@ namespace Markdown
         for (const auto &th : this->header)
         {
             size_t len = th.getText().length();
-            result += th.getText() + std::string(lengths.at(i) - len, ' ') + '|';
+            result += (i > 0 ? " " : "") + th.getText() + std::string(lengths.at(i) - len, ' ') + '|';
+            i++;
         }
+        result.pop_back();
+        result += "\n";
+
+        i = 0;
+        for (const auto& th : this->header)
+        {
+            result += std::string(lengths.at(i) + (i > 0 ? 1 : 0), '-') + '|';
+            i++;
+        }
+        result.pop_back();
+        result += "\n";
+
+        for (const auto& row : this->rows)
+        {
+            i = 0;
+            for (const auto& td : row)
+            {
+                size_t len = td.getText().length();
+                result += (i > 0 ? " " : "") + td.getText() + std::string(lengths.at(i) - len, ' ') + '|';
+                i++;
+            }
+            result.pop_back();
+            result += "\n";
+        }
+        result.pop_back();
 
         return result;
     }
@@ -182,6 +208,11 @@ namespace Markdown
         }
         result += "</table>";
         return result;
+    }
+
+    std::string TableElement::getMarkdown() const
+    {
+        return this->getText();
     }
 
 

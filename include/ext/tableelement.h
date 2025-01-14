@@ -43,6 +43,7 @@ namespace Markdown
 
         virtual std::string getText() const override;
         virtual std::string getHtml() const override;
+        virtual std::string getMarkdown() const override;
 
         static bool tableLineValid(const std::string &line, size_t requiredPipes);
         static Row parseRow(const std::string& line);

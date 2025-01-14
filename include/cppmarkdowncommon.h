@@ -153,6 +153,7 @@ namespace Markdown
 
         virtual std::string getText() const { return ""; }
         virtual std::string getHtml() const { return ""; }
+        virtual std::string getMarkdown() const { return ""; }
         virtual std::string dump(int indent = 0) const;
     };
 

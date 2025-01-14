@@ -31,6 +31,7 @@ namespace Markdown
 
         virtual std::string getText() const override;
         virtual std::string getHtml() const override;
+        virtual std::string getMarkdown() const override;
 
         static std::shared_ptr<MarkdownStyle> getDefaultStyle(Heading heading);
         static std::string getHeadingText(const std::string& line);

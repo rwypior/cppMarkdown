@@ -14,6 +14,17 @@ The following core Markdown syntax elements are supported:
 In addition, an extended syntax elements are provided as extensions:
 - Table
 
+Span elements supported by `Span` class:
+- Links
+- Emphasis (bold, italic, bold-italic)
+- Code (including double backtick)
+
+Not supported functionality (TODO)
+- Images
+- Backslash escaping
+- Automatic links
+- Reference-style links
+
 > **Note:** In order to use extensions provided by the library, it is required to enable standard extensions.
 > The quickest way of doing so is by using `Markdown::registerStandardExtensions();` function.
 
@@ -71,4 +82,6 @@ It is possible to create a Markdown document from elements opposed to source.
     auto p = std::make_shared<Markdown::ParagraphElement>("And this is paragraph");
     doc.addElement(h1);
     doc.addElement(p);
-    std::string html = doc.getHtml();
+    std::string html = doc.getHtml(); // Get HTML
+    std::string text = doc.getText(); // Get plaintext
+    std::string markdown = doc.getMarkdown(); // Get Markdown code

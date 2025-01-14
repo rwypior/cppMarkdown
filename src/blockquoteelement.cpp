@@ -1,4 +1,5 @@
 #include "blockquoteelement.h"
+#include "cppmarkdowncommon.h"
 
 #include <sstream>
 
@@ -71,6 +72,18 @@ namespace Markdown
         }
         html += "</blockquote>";
         return html;
+    }
+
+    std::string BlockquoteElement::getMarkdown() const
+    {
+        auto splitted = split(this->getText(), '\n');
+        std::string result;
+        for (const auto& line : splitted)
+        {
+            result += "> " + line + "\n";
+        }
+        result.pop_back();
+        return result;
     }
 
     std::string BlockquoteElement::dump(int indent) const

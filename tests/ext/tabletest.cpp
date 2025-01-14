@@ -69,6 +69,23 @@ TEST_CASE("Table parsing", "[table]")
     REQUIRE(table.getCell(1, 2)->getText() == "c");
 }
 
+TEST_CASE("Table parsing to text", "[table]")
+{
+    std::string tableMarkdown =
+        "this|is|header\n"
+        "-|-|-\n"
+        "1234567|2|3\n"
+        "a|b|c\n";
+    Markdown::TableElement table(tableMarkdown);
+
+    REQUIRE(table.getText() == 
+        "this    | is | header \n"
+        "--------|----|--------\n"
+        "1234567 | 2  | 3      \n"
+        "a       | b  | c      "
+    );
+}
+
 TEST_CASE("Table with styled element", "[table]")
 {
     std::string tableMarkdown =

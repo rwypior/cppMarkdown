@@ -50,4 +50,9 @@ namespace Markdown
     {
         return "<hr>";
     }
+
+    std::string LineElement::getMarkdown() const
+    {
+        return std::string(this->textLineLength, this->textLineCharacter);
+    }
 }

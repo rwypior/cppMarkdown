@@ -20,6 +20,7 @@ namespace Markdown
 
         virtual std::string getText() const override;
         virtual std::string getHtml() const override;
+        virtual std::string getMarkdown() const override;
 
         static bool isAllWhitespace(const std::string& line);
         static bool isSkippable(const std::string& line);

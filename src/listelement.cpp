@@ -283,6 +283,11 @@ namespace Markdown
         return html;
     }
 
+    std::string ListElement::getMarkdown() const
+    {
+        return this->getText();
+    }
+
     std::string ListElement::dump(int indent) const
     {
         return ElementContainer::dump(indent);

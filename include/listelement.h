@@ -94,6 +94,7 @@ namespace Markdown
 
         virtual std::string getText() const override;
         virtual std::string getHtml() const override;
+        virtual std::string getMarkdown() const override;
         virtual std::string dump(int indent = 0) const override;
 
         static size_t findUnorderedMarker(const std::string &text);

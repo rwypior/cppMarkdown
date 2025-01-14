@@ -55,6 +55,11 @@ namespace Markdown
         return this->text.getHtml();
     }
 
+    std::string HeadingElement::getMarkdown() const
+    {
+        return std::string(static_cast<int>(this->heading) + 1, '#') + this->getText();
+    }
+
     std::shared_ptr<MarkdownStyle> HeadingElement::getDefaultStyle(Heading heading)
     {
         switch (heading)

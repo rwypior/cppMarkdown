@@ -34,6 +34,11 @@ namespace Markdown
         return "<br>";
     }
 
+    std::string LineBreakElement::getMarkdown() const
+    {
+        return "\n";
+    }
+
     bool LineBreakElement::isAllWhitespace(const std::string& line)
     {
         return std::all_of(line.begin(), line.end(), [](char c) { return std::isspace(c); });
