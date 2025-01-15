@@ -54,6 +54,7 @@ namespace Markdown
 			std::make_shared<GenericStyle>("_", "_", Style("<i>", "</i>")),
 			std::make_shared<GenericStyle>("`", "`", Style("<code>", "</code>"), false),
 			std::make_shared<LinkStyle>(),
+			std::make_shared<ImageStyle>()
 		};
 
 		std::vector<std::unique_ptr<Span>> spans;
@@ -345,6 +346,73 @@ namespace Markdown
 	std::string LinkStyle::LinkSpan::getMarkdown() const
 	{
 		std::string result = "[";
+
+		if (this->hasSpans())
+		{
+			for (const auto& span : this->children)
+			{
+				result += span->getMarkdown();
+			}
+		}
+		else
+			result += this->text;
+
+		result += "](" + this->url + ")";
+
+		return result;
+	}
+
+	// Image style
+
+	MarkdownStyle::Result ImageStyle::findIn(const std::string& str, size_t offset, const StyleContainer& /*stylemap*/) const
+	{
+		std::regex regex(R"r(.*(!\[(.+?)\]\((.*?)\)).*)r");
+		std::smatch matches;
+		if (std::regex_match(std::next(str.begin(), offset), str.end(), matches, regex))
+		{
+			size_t pos = matches.position(1);
+			std::string full = std::next(matches.begin(), 1)->str();
+			std::string linktext = std::next(matches.begin(), 2)->str();
+			std::string linkurl = std::next(matches.begin(), 3)->str();
+
+			return {
+				pos,
+				full.size(),
+				std::make_unique<ImageSpan>(linktext, linkurl, std::make_shared<ImageStyle>(*this))
+			};
+		}
+
+		return { };
+	}
+
+	// Image span
+
+	ImageStyle::ImageSpan::ImageSpan(const std::string& text, const std::string& url,
+		std::shared_ptr<MarkdownStyle> style, const std::vector<std::unique_ptr<Span>>& children)
+		: Span(text, style, children)
+		, url(url)
+	{
+		auto spans = this->findStyle(text, {}, SpanSearchFlags::Normal);
+		if (spans.size() > 1 || (spans.size() == 1 && spans.front()->style))
+		{
+			this->text = "";
+			this->children = std::move(spans);
+		}
+	}
+
+	std::unique_ptr<Span> ImageStyle::ImageSpan::clone() const
+	{
+		return std::make_unique<ImageStyle::ImageSpan>(this->text, this->url, this->style, this->children);
+	}
+
+	std::string ImageStyle::ImageSpan::getHtml() const
+	{
+		return "<img src=\"" + this->url + "\" alt=\"" + this->text + "\">";
+	}
+
+	std::string ImageStyle::ImageSpan::getMarkdown() const
+	{
+		std::string result = "![";
 
 		if (this->hasSpans())
 		{

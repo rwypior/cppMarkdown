@@ -18,9 +18,9 @@ Span elements supported by `Span` class:
 - Links
 - Emphasis (bold, italic, bold-italic)
 - Code (including double backtick)
+- Images
 
 Not supported functionality (TODO)
-- Images
 - Backslash escaping
 - Automatic links
 - Reference-style links

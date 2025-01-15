@@ -191,6 +191,24 @@ namespace Markdown
         virtual Result findIn(const std::string& str, size_t offset, const StyleContainer& stylemap) const override;
     };
 
+    struct ImageStyle : public MarkdownStyle
+    {
+        struct ImageSpan : Span
+        {
+            std::string url;
+
+            ImageSpan(const std::string& text, const std::string& url, std::shared_ptr<MarkdownStyle> style,
+                const std::vector<std::unique_ptr<Span>>& children = {});
+
+            std::unique_ptr<Span> clone() const override;
+
+            virtual std::string getHtml() const override;
+            virtual std::string getMarkdown() const override;
+        };
+
+        virtual Result findIn(const std::string& str, size_t offset, const StyleContainer& stylemap) const override;
+    };
+
     DEFINE_BITFIELD(TextEntry::HtmlOptions);
     DEFINE_BITFIELD(SpanSearchFlags);
 }
