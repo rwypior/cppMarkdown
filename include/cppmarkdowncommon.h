@@ -7,6 +7,8 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
+#include <unordered_map>
+#include <optional>
 
 namespace Markdown
 {
@@ -85,6 +87,7 @@ namespace Markdown
         LineBreak,
         Code,
         Line,
+        Reference,
         Extension
     };
     DEFINE_BITFIELD(Type);
@@ -167,6 +170,41 @@ namespace Markdown
             : openingTag(openingTag)
             , closingTag(closingTag)
         { }
+    };
+
+    struct Reference
+    {
+        Reference(const std::string& id = "", const std::string& value = "", const std::string& title = "")
+            : id(id)
+            , value(value)
+            , title(title)
+        {
+        }
+
+        std::string id;
+        std::string value;
+        std::string title;
+    };
+
+    class ReferenceManager
+    {
+    public:
+        struct ContextGuard
+        {
+            ContextGuard(ReferenceManager &manager);
+            ~ContextGuard();
+        };
+        friend struct ContextGuard;
+
+    public:
+        static ReferenceManager* get();
+
+        void registerReference(const Reference& reference);
+        std::optional<Reference> getReference(const std::string &name) const;
+
+    private:
+        std::unordered_map<std::string, Reference> references;
+        static ReferenceManager* current;
     };
 
     using ParserPredicate = std::function<ParseResult(const std::string&, std::shared_ptr<Element>, std::shared_ptr<Element>, Type mask)>;

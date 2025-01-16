@@ -4,6 +4,7 @@
 
 #include <unordered_map>
 #include <sstream>
+#include <cassert>
 
 namespace Markdown
 {
@@ -73,5 +74,38 @@ namespace Markdown
         std::string result = std::string(indent, dumpIndentChar) + "[" + typeToString(this->getType()) + "] " + text + "\n";
 
         return result;
+    }
+
+    // References
+
+    ReferenceManager* ReferenceManager::current = nullptr;
+
+    ReferenceManager::ContextGuard::ContextGuard(ReferenceManager& manager)
+    {
+        ReferenceManager::current = &manager;
+    }
+
+    ReferenceManager::ContextGuard::~ContextGuard()
+    {
+        ReferenceManager::current = nullptr;
+    }
+
+    ReferenceManager* ReferenceManager::get()
+    {
+        return ReferenceManager::current;
+    }
+
+    void ReferenceManager::registerReference(const Reference& reference)
+    {
+        assert(current);
+        this->references[reference.id] = reference;
+    }
+
+    std::optional<Reference> ReferenceManager::getReference(const std::string& name) const
+    {
+        auto it = this->references.find(name);
+        if (it != this->references.end())
+            return it->second;
+        return {};
     }
 }

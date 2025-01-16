@@ -9,6 +9,7 @@
 #include "codeelement.h"
 #include "lineelement.h"
 #include "blankelement.h"
+#include "referenceelement.h"
 
 #include <fstream>
 #include <sstream>
@@ -22,6 +23,7 @@ namespace Markdown
 	ParseResult ElementContainer::parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active, Type mask)
 	{
 		ParserCollection parsers {
+			&parseElement<ReferenceElement>,
 			&parseElement<LineElement>,
 			&parseElement<ListElement>,
 			&parseElement<CodeElement>,
@@ -283,7 +285,13 @@ namespace Markdown
 		}
 
 		throw FileException("File " + path + " could not be opened");
-	}	
+	}
+
+	void Document::parse(const std::string& content, Type mask)
+	{
+		ReferenceManager::ContextGuard cg(this->referenceManager);
+		ElementContainer::parse(content, mask);
+	}
 
 	std::string Document::getText() const
 	{

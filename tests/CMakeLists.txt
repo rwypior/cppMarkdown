@@ -10,7 +10,7 @@ project ("cppMarkdownTest")
 add_executable(cppMarkdownTest)
 target_sources(cppMarkdownTest PRIVATE "main.cpp" "documenttest.cpp" "textentrytest.cpp" "paragraphtest.cpp" "headingtest.cpp" "blockquotetest.cpp" "listtest.cpp" "codetest.cpp" "linetest.cpp" "linebreaktest.cpp" "elementcontainertest.cpp"
 "ext/tabletest.cpp"
- "commontest.cpp")
+ "commontest.cpp" "referencetest.cpp")
 add_dependencies(cppMarkdownTest cppMarkdown)
 
 set_property(TARGET cppMarkdownTest PROPERTY CXX_STANDARD 17)

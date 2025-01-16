@@ -53,8 +53,8 @@ namespace Markdown
 			std::make_shared<GenericStyle>("*", "*", Style("<i>", "</i>")),
 			std::make_shared<GenericStyle>("_", "_", Style("<i>", "</i>")),
 			std::make_shared<GenericStyle>("`", "`", Style("<code>", "</code>"), false),
-			std::make_shared<LinkStyle>(),
-			std::make_shared<ImageStyle>()
+			std::make_shared<ImageStyle>(),
+			std::make_shared<LinkStyle>()
 		};
 
 		std::vector<std::unique_ptr<Span>> spans;
@@ -300,18 +300,30 @@ namespace Markdown
 	MarkdownStyle::Result LinkStyle::findIn(const std::string& str, size_t offset, const StyleContainer& /*stylemap*/) const
 	{
 		std::regex regex(R"r(.*(\[(.+?)\]\((.*?)\)).*)r");
+		std::regex regexRef(R"r(.*(\[(.+?)\] ?\[(.*?)\]).*)r");
+
 		std::smatch matches;
-		if (std::regex_match(std::next(str.begin(), offset), str.end(), matches, regex))
+
+		bool matchedStandard = std::regex_match(std::next(str.begin(), offset), str.end(), matches, regex);
+		bool matchedReference = false;
+		if (!matchedStandard)
+			matchedReference = std::regex_match(std::next(str.begin(), offset), str.end(), matches, regexRef);
+
+		bool matched = matchedStandard || matchedReference;
+
+		if (matched)
 		{
 			size_t pos = matches.position(1);
 			std::string full = std::next(matches.begin(), 1)->str();
 			std::string linktext = std::next(matches.begin(), 2)->str();
 			std::string linkurl = std::next(matches.begin(), 3)->str();
 
+			ReferenceManager *refman = matchedReference ? ReferenceManager::get() : nullptr;
+
 			return {
 				pos,
 				full.size(),
-				std::make_unique<LinkSpan>(linktext, linkurl, std::make_shared<LinkStyle>(*this))
+				std::make_unique<LinkSpan>(linktext, linkurl, std::make_shared<LinkStyle>(*this), Markdown::SpanContainer::Container{}, refman)
 			};
 		}
 
@@ -321,9 +333,10 @@ namespace Markdown
 	// Link span
 
 	LinkStyle::LinkSpan::LinkSpan(const std::string& text, const std::string& url,
-		std::shared_ptr<MarkdownStyle> style, const std::vector<std::unique_ptr<Span>>& children)
+		std::shared_ptr<MarkdownStyle> style, const std::vector<std::unique_ptr<Span>>& children, ReferenceManager* refman)
 		: Span(text, style, children)
 		, url(url)
+		, refman(refman)
 	{
 		auto spans = this->findStyle(text, {}, SpanSearchFlags::Normal);
 		if (spans.size() > 1 || (spans.size() == 1 && spans.front()->style))
@@ -340,7 +353,25 @@ namespace Markdown
 
 	std::string LinkStyle::LinkSpan::getHtml() const
 	{
-		return "<a href=\"" + this->url + "\">" + Span::getHtml() + "</a>";
+		std::string url;
+		std::string title;
+		if (this->refman)
+		{
+			if (auto ref = this->refman->getReference(this->url))
+			{
+				url = ref->value;
+				title = ref->title;
+			}
+		}
+		else
+			url = this->url;
+
+		std::string result = "<a href=\"" + url + "\"";
+		if (!title.empty())
+			result += " title=\"" + title + "\"";
+		result += ">" + Span::getHtml() + "</a>";
+
+		return result;
 	}
 
 	std::string LinkStyle::LinkSpan::getMarkdown() const
@@ -367,18 +398,30 @@ namespace Markdown
 	MarkdownStyle::Result ImageStyle::findIn(const std::string& str, size_t offset, const StyleContainer& /*stylemap*/) const
 	{
 		std::regex regex(R"r(.*(!\[(.+?)\]\((.*?)\)).*)r");
+		std::regex regexRef(R"r(.*(!\[(.+?)\] ?\[(.*?)\]).*)r");
+
 		std::smatch matches;
-		if (std::regex_match(std::next(str.begin(), offset), str.end(), matches, regex))
+
+		bool matchedStandard = std::regex_match(std::next(str.begin(), offset), str.end(), matches, regex);
+		bool matchedReference = false;
+		if (!matchedStandard)
+			matchedReference = std::regex_match(std::next(str.begin(), offset), str.end(), matches, regexRef);
+
+		bool matched = matchedStandard || matchedReference;
+
+		if (matched)
 		{
 			size_t pos = matches.position(1);
 			std::string full = std::next(matches.begin(), 1)->str();
 			std::string linktext = std::next(matches.begin(), 2)->str();
 			std::string linkurl = std::next(matches.begin(), 3)->str();
 
+			ReferenceManager* refman = matchedReference ? ReferenceManager::get() : nullptr;
+
 			return {
 				pos,
 				full.size(),
-				std::make_unique<ImageSpan>(linktext, linkurl, std::make_shared<ImageStyle>(*this))
+				std::make_unique<ImageSpan>(linktext, linkurl, std::make_shared<ImageStyle>(*this), Markdown::SpanContainer::Container{}, refman)
 			};
 		}
 
@@ -388,9 +431,10 @@ namespace Markdown
 	// Image span
 
 	ImageStyle::ImageSpan::ImageSpan(const std::string& text, const std::string& url,
-		std::shared_ptr<MarkdownStyle> style, const std::vector<std::unique_ptr<Span>>& children)
+		std::shared_ptr<MarkdownStyle> style, const std::vector<std::unique_ptr<Span>>& children, ReferenceManager* refman)
 		: Span(text, style, children)
 		, url(url)
+		, refman(refman)
 	{
 		auto spans = this->findStyle(text, {}, SpanSearchFlags::Normal);
 		if (spans.size() > 1 || (spans.size() == 1 && spans.front()->style))
@@ -407,7 +451,25 @@ namespace Markdown
 
 	std::string ImageStyle::ImageSpan::getHtml() const
 	{
-		return "<img src=\"" + this->url + "\" alt=\"" + this->text + "\">";
+		std::string url;
+		std::string title = "";
+		if (this->refman)
+		{
+			if (auto ref = this->refman->getReference(this->url))
+			{
+				url = ref->value;
+				title = ref->title;
+			}
+		}
+		else
+			url = this->url;
+
+		std::string result = "<img src=\"" + url + "\" alt=\"" + this->text + "\"";
+		if (!title.empty())
+			result += " title=\"" + title + "\"";
+		result += ">";
+
+		return result;
 	}
 
 	std::string ImageStyle::ImageSpan::getMarkdown() const

@@ -13,5 +13,6 @@
 #include "lineelement.h"
 #include "listelement.h"
 #include "paragraphelement.h"
+#include "referenceelement.h"
 
 #endif

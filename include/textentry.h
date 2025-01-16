@@ -178,9 +178,10 @@ namespace Markdown
         struct LinkSpan : Span
         {
             std::string url;
+            ReferenceManager* refman = nullptr;
 
             LinkSpan(const std::string& text, const std::string& url, std::shared_ptr<MarkdownStyle> style,
-                     const std::vector<std::unique_ptr<Span>>& children = {});
+                     const std::vector<std::unique_ptr<Span>>& children = {}, ReferenceManager* refman = nullptr);
 
             std::unique_ptr<Span> clone() const override;
 
@@ -196,9 +197,10 @@ namespace Markdown
         struct ImageSpan : Span
         {
             std::string url;
+            ReferenceManager* refman = nullptr;
 
             ImageSpan(const std::string& text, const std::string& url, std::shared_ptr<MarkdownStyle> style,
-                const std::vector<std::unique_ptr<Span>>& children = {});
+                const std::vector<std::unique_ptr<Span>>& children = {}, ReferenceManager* refman = nullptr);
 
             std::unique_ptr<Span> clone() const override;
 
