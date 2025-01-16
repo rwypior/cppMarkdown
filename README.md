@@ -19,11 +19,11 @@ Span elements supported by `Span` class:
 - Emphasis (bold, italic, bold-italic)
 - Code (including double backtick)
 - Images
+- Reference-style links and images
 
 Not supported functionality (TODO)
 - Backslash escaping
 - Automatic links
-- Reference-style links
 
 > **Note:** In order to use extensions provided by the library, it is required to enable standard extensions.
 > The quickest way of doing so is by using `Markdown::registerStandardExtensions();` function.
