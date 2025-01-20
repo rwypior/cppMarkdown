@@ -20,17 +20,60 @@ add_library(cppMarkdown)
 
 set_property(TARGET cppMarkdown PROPERTY CXX_STANDARD 17)
 
-target_compile_definitions(cppMarkdown
-    PRIVATE
-        $<$<CONFIG:Debug>:DEBUG>
-)
+#target_compile_definitions(cppMarkdown
+#    PRIVATE
+#        $<$<CONFIG:Debug>:DEBUG>
+#)
 
 include(cmake/CPM.cmake)
-target_include_directories (cppMarkdown PUBLIC "${PROJECT_SOURCE_DIR}/include")
-
-include(CTest)
+target_include_directories (cppMarkdown PRIVATE "${PROJECT_SOURCE_DIR}/include")
 
 add_subdirectory ("src")
-add_subdirectory ("tests")
 
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT cppMarkdownExample)
+if(${BUILD_TESTING})
+    message("Building unit tests")
+
+    include(CTest)
+    add_subdirectory ("tests")
+endif()
+
+install(
+        TARGETS cppMarkdown EXPORT cppMarkdownTargets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include
+)
+
+install(
+        DIRECTORY include/
+        DESTINATION include/cppMarkdown
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/cppMarkdown/cppMarkdownConfigVersion.cmake"
+        VERSION 1.0.0
+        COMPATIBILITY AnyNewerVersion
+)
+
+export(EXPORT cppMarkdownTargets
+        FILE "${CMAKE_CURRENT_BINARY_DIR}/cppMarkdown/cppMarkdownTargets.cmake"
+        NAMESPACE cppmd::
+)
+
+configure_file(cmake/cppMarkdownConfig.cmake
+        "${CMAKE_CURRENT_BINARY_DIR}/cppMarkdown/cppMarkdownConfig.cmake"
+        COPYONLY
+)
+
+set(ConfigPackageLocation lib/cmake/cppMarkdown)
+
+install(EXPORT cppMarkdownTargets
+        FILE cppMarkdownTargets.cmake
+        NAMESPACE cppmd::
+        DESTINATION ${ConfigPackageLocation}
+)
+install(FILES "cmake/cppMarkdownConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/cppMarkdown/cppMarkdownConfigVersion.cmake"
+        DESTINATION ${ConfigPackageLocation}
+)
