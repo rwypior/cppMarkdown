@@ -6,7 +6,10 @@
       "displayName": "Base configuration",
       "hidden": true,
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/${presetName}"
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "BUILD_TESTING": true
+      }
     },
     {
       "name": "debug",
