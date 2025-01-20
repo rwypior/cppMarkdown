@@ -20,11 +20,6 @@ add_library(cppMarkdown)
 
 set_property(TARGET cppMarkdown PROPERTY CXX_STANDARD 17)
 
-#target_compile_definitions(cppMarkdown
-#    PRIVATE
-#        $<$<CONFIG:Debug>:DEBUG>
-#)
-
 include(cmake/CPM.cmake)
 target_include_directories (cppMarkdown PRIVATE "${PROJECT_SOURCE_DIR}/include")
 
@@ -77,3 +72,5 @@ install(EXPORT cppMarkdownTargets
 install(FILES "cmake/cppMarkdownConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/cppMarkdown/cppMarkdownConfigVersion.cmake"
         DESTINATION ${ConfigPackageLocation}
 )
+
+export(PACKAGE cppMarkdown)
