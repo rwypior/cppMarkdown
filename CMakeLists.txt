@@ -20,8 +20,14 @@ add_library(cppMarkdown)
 
 set_property(TARGET cppMarkdown PROPERTY CXX_STANDARD 17)
 
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
 include(cmake/CPM.cmake)
-target_include_directories (cppMarkdown PRIVATE "${PROJECT_SOURCE_DIR}/include")
+target_include_directories (cppMarkdown PUBLIC 
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
 
 add_subdirectory ("src")
 
@@ -32,24 +38,31 @@ if(${BUILD_TESTING})
     add_subdirectory ("tests")
 endif()
 
-install(
-        TARGETS cppMarkdown EXPORT cppMarkdownTargets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-        INCLUDES DESTINATION include
+set(ConfigPackageLocation lib/cmake/cppMarkdown)
+
+configure_package_config_file(
+        cmake/cppMarkdownConfig.cmake.in
+	    "${CMAKE_CURRENT_BINARY_DIR}/cppMarkdown/cppMarkdownConfig.cmake"
+	    INSTALL_DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/cppMarkdown"
 )
 
-install(
-        DIRECTORY include/
-        DESTINATION include/cppMarkdown
-)
-
-include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
         "${CMAKE_CURRENT_BINARY_DIR}/cppMarkdown/cppMarkdownConfigVersion.cmake"
         VERSION 1.0.0
         COMPATIBILITY AnyNewerVersion
+)
+
+install(
+        TARGETS cppMarkdown EXPORT cppMarkdownTargets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+        DIRECTORY "include/"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cppMarkdown"
 )
 
 export(EXPORT cppMarkdownTargets
@@ -57,19 +70,15 @@ export(EXPORT cppMarkdownTargets
         NAMESPACE cppmd::
 )
 
-configure_file(cmake/cppMarkdownConfig.cmake
-        "${CMAKE_CURRENT_BINARY_DIR}/cppMarkdown/cppMarkdownConfig.cmake"
-        COPYONLY
-)
-
-set(ConfigPackageLocation lib/cmake/cppMarkdown)
-
 install(EXPORT cppMarkdownTargets
         FILE cppMarkdownTargets.cmake
         NAMESPACE cppmd::
         DESTINATION ${ConfigPackageLocation}
 )
-install(FILES "cmake/cppMarkdownConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/cppMarkdown/cppMarkdownConfigVersion.cmake"
+
+install(FILES 
+            "${CMAKE_CURRENT_BINARY_DIR}/cppMarkdown/cppMarkdownConfig.cmake" 
+            "${CMAKE_CURRENT_BINARY_DIR}/cppMarkdown/cppMarkdownConfigVersion.cmake"
         DESTINATION ${ConfigPackageLocation}
 )
 

@@ -1,5 +1,6 @@
 *.pyc
 CMakeSettings.json
+CMakeUserPresets.json
 
 .vs/
 .kdev4/
