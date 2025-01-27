@@ -17,6 +17,7 @@ endif()
 
 project ("cppMarkdown")
 add_library(cppMarkdown)
+add_library(cppMarkdown::cppMarkdown ALIAS cppMarkdown)
 
 set_property(TARGET cppMarkdown PROPERTY CXX_STANDARD 17)
 
