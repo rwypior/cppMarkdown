@@ -26,7 +26,7 @@ include(CMakePackageConfigHelpers)
 
 include(cmake/CPM.cmake)
 target_include_directories (cppMarkdown PUBLIC 
-    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
@@ -68,12 +68,12 @@ install(
 
 export(EXPORT cppMarkdownTargets
         FILE "${CMAKE_CURRENT_BINARY_DIR}/cppMarkdown/cppMarkdownTargets.cmake"
-        NAMESPACE cppmd::
+        NAMESPACE cppMarkdown::
 )
 
 install(EXPORT cppMarkdownTargets
         FILE cppMarkdownTargets.cmake
-        NAMESPACE cppmd::
+        NAMESPACE cppMarkdown::
         DESTINATION ${ConfigPackageLocation}
 )
 
