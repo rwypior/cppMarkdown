@@ -2,6 +2,35 @@
 
 #include <catch2/catch_all.hpp>
 
+namespace Catch
+{
+	template<>
+	struct StringMaker<std::tuple<size_t, size_t>>
+	{
+		static std::string convert(std::tuple<size_t, size_t> const& value)
+		{
+			return "{" + std::to_string(std::get<0>(value)) + ", " + std::to_string(std::get<1>(value)) + "}";
+		}
+	};
+
+	template<>
+	struct StringMaker<Markdown::ListElement::ListMarker>
+	{
+		static std::string convert(Markdown::ListElement::ListMarker const& value)
+		{
+			return "ListMarker { type=" + std::to_string(static_cast<int>(value.type)) + ", level=" + std::to_string(value.level) + "}";
+		}
+	};
+}
+
+TEST_CASE("List leading spaces", "[list]")
+{
+	using namespace Markdown;
+
+	REQUIRE(ListElement::countLeadingSpaces("x") == 0);
+	REQUIRE(ListElement::countLeadingSpaces("    x") == 4);
+}
+
 TEST_CASE("List level parsing", "[list]")
 {
 	using namespace Markdown;
@@ -24,6 +53,38 @@ TEST_CASE("List level parsing", "[list]")
 	REQUIRE(ListElement::getListLevel("        - x") == ListElement::ListMarker(2, ListElement::ListType::Unordered));
 	REQUIRE(ListElement::getListLevel("\t- x") == ListElement::ListMarker(1, ListElement::ListType::Unordered));
 	REQUIRE(ListElement::getListLevel("\t\t- x") == ListElement::ListMarker(2, ListElement::ListType::Unordered));
+
+	// Invalid
+	REQUIRE(!ListElement::getListLevel("This is some text - with hyphen"));
+	REQUIRE(!ListElement::getListLevel("And same text with * asterisk"));
+}
+
+TEST_CASE("List find ordered marker", "[list]")
+{
+	using namespace Markdown;
+	using poslen = std::tuple<size_t, size_t>;
+	constexpr poslen invalid = { std::string::npos, std::string::npos };
+
+	REQUIRE(ListElement::findOrderedMarker("123. something") == poslen{3, 3});
+	REQUIRE(ListElement::findOrderedMarker("    123. offset") == poslen{7, 3});
+	REQUIRE(ListElement::findOrderedMarker("    123. 456. offset") == poslen{7, 3});
+
+	REQUIRE(ListElement::findOrderedMarker("  42  123. offset") == invalid);
+	REQUIRE(ListElement::findOrderedMarker("  x  123. offset") == invalid);
+	REQUIRE(ListElement::findOrderedMarker("    x. offset") == invalid);
+}
+
+TEST_CASE("List find unordered marker", "[list]")
+{
+	using namespace Markdown;
+
+	REQUIRE(ListElement::findUnorderedMarker("- something") == 0);
+	REQUIRE(ListElement::findUnorderedMarker("    - offset") == 4);
+	REQUIRE(ListElement::findUnorderedMarker("  -  - half offset") == 2);
+
+	REQUIRE(ListElement::findUnorderedMarker("  42 - offset") == std::string::npos);
+	REQUIRE(ListElement::findUnorderedMarker("  x  - offset") == std::string::npos);
+	REQUIRE(ListElement::findUnorderedMarker("something -") == std::string::npos);
 }
 
 TEST_CASE("List text parsing", "[list]")

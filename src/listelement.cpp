@@ -4,6 +4,8 @@
 
 #include <sstream>
 #include <cassert>
+#include <algorithm>
+#include <functional>
 
 namespace Markdown
 {
@@ -45,11 +47,9 @@ namespace Markdown
 
     ParseResult ListItem::parse(const std::string& line, std::shared_ptr<Element>)
     {
-        ListElement::ListMarker marker = ListElement::getListLevel(line);
+        // We don't care about marker's validity here - ListElement checks it, only get the level
+        ListElement::ListMarker marker = ListElement::getListLevel(line, true);
         this->level = marker.level;
-
-        if (!marker)
-            return ParseResult(ParseCode::Invalid);
 
         ElementContainer::parse(ListElement::getListItemText(line));
         this->buffer += line + "\n";
@@ -176,6 +176,9 @@ namespace Markdown
     {
         ListMarker marker = getListLevel(line);
 
+        if (!marker)
+            return ParseResult(ParseCode::Invalid);
+
         auto item = std::make_shared<ListItem>(this);
         auto result = item->parse(line, nullptr);
         result.element = item;
@@ -293,6 +296,11 @@ namespace Markdown
         return ElementContainer::dump(indent);
     }
 
+    size_t ListElement::countLeadingSpaces(const std::string& text)
+    {
+        return std::distance(text.begin(), std::find_if(text.begin(), text.end(), [](auto x) { return !std::isspace(x); }));
+    }
+
     size_t ListElement::findUnorderedMarker(const std::string& text)
     {
         std::vector<char> markers{'-', '*', '+'};
@@ -301,7 +309,11 @@ namespace Markdown
             size_t pos = text.find_first_of(c);
             if (pos != std::string::npos)
             {
-                if (pos >= text.size() - 1 || text[pos + 1] == c)
+                if (
+                    pos >= text.size() - 1 || 
+                    text[pos + 1] == c ||
+                    pos > 0 && !std::all_of(text.begin(), text.begin() + pos, std::isspace)
+                    )
                     continue;
 
                 return pos;
@@ -310,19 +322,31 @@ namespace Markdown
         return std::string::npos;
     }
 
-    size_t ListElement::findOrderedMarker(const std::string& text)
+    std::tuple<size_t, size_t> ListElement::findOrderedMarker(const std::string& text)
     {
         size_t pos = text.find_first_of('.');
         if (pos == std::string::npos)
-            return std::string::npos;
+            return { std::string::npos, std::string::npos };
 
-        for (auto it = text.begin() + pos; it != std::next(text.begin(), pos); it++)
+        size_t numlen = 0;
+        bool foundSpace = false;
+        for (auto it = std::make_reverse_iterator(text.begin() + pos); it != text.rend(); it++)
         {
-            if (!std::isdigit(*it))
-                return std::string::npos;
+            // Find any digits in direct neighbourhood of the dot
+            // Must only have digits right next to dot and then only spaces
+            // If found any digits after spaces were found - it's not list
+
+            if (std::isdigit(*it) && !foundSpace)
+                numlen++;
+            else if (numlen == 0 || !std::isspace(*it))
+                return { std::string::npos, std::string::npos };
+            else if (std::isspace(*it))
+                foundSpace = true;
+            else
+                return { std::string::npos, std::string::npos };
         }
 
-        return pos;
+        return { pos, numlen };
     }
 
     size_t ListElement::findMarker(const std::string& text)
@@ -333,29 +357,42 @@ namespace Markdown
         return pos;
     }
 
-    ListElement::ListMarker ListElement::getListLevel(const std::string& line)
+    ListElement::ListMarker ListElement::getListLevel(const std::string& line, bool skipValidation)
     {
         ListMarker marker;
-
-        auto pos = findUnorderedMarker(line);
-        if (pos != std::string::npos)
-            marker.type = ListType::Unordered;
-        else
-        {
-            pos = findOrderedMarker(line);
-
-            if (pos != std::string::npos)
-                marker.type = ListType::Ordered;
-        }
 
         if (line.empty())
             return marker;
 
+        size_t count = 0;
+
+        if (!skipValidation)
+        {
+            auto pos = findUnorderedMarker(line);
+            if (pos != std::string::npos)
+            {
+                marker.type = ListType::Unordered;
+                count = pos;
+            }
+            else
+            {
+                auto poslen = findOrderedMarker(line);
+                pos = std::get<0>(poslen);
+                count = std::get<1>(poslen);
+
+                if (pos != std::string::npos)
+                {
+                    marker.type = ListType::Ordered;
+                    count = pos - count;
+                }
+            }
+        }
+        
+        if (skipValidation || count == std::string::npos)
+            count = countLeadingSpaces(line);
+
         bool tabs = line.front() == '\t';
         char search = tabs ? '\t' : ' ';
-
-        // TODO - this could be just a difference of begin and first_not_of?
-        unsigned int count = std::count(line.begin(), std::next(line.begin(), line.find_first_not_of(search)), search);
 
         marker.level = tabs ? count : count / 4;
         return marker;

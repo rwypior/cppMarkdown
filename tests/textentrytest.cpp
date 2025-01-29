@@ -1,4 +1,5 @@
 #include "cppmarkdown/textentry.h"
+#include "cppmarkdown/document.h"
 
 #include <catch2/catch_all.hpp>
 
@@ -75,4 +76,11 @@ TEST_CASE("Inline double code", "[textentry]")
 TEST_CASE("Images", "[textentry]")
 {
 	REQUIRE(Markdown::TextEntry("![Alt](Link)").getHtml() == "<img src=\"Link\" alt=\"Alt\">");
+}
+
+TEST_CASE("Text entry in document", "[textentry]")
+{
+	Markdown::Document doc;
+	doc.parse("Simple *italic* text");
+	REQUIRE((*doc.begin())->getHtml() == "<p>Simple <i>italic</i> text</p>");
 }

@@ -6,6 +6,7 @@
 #include "cppmarkdown/textentry.h"
 
 #include <vector>
+#include <tuple>
 
 namespace Markdown
 {
@@ -71,6 +72,13 @@ namespace Markdown
             {
                 return type != ListType::Invalid;
             }
+
+            bool operator==(const ListMarker& b) const
+            {
+                return
+                    this->level == b.level &&
+                    this->type == b.type;
+            }
         };
 
     public:
@@ -97,10 +105,15 @@ namespace Markdown
         virtual std::string getMarkdown() const override;
         virtual std::string dump(int indent = 0) const override;
 
+        static size_t countLeadingSpaces(const std::string &text);
         static size_t findUnorderedMarker(const std::string &text);
-        static size_t findOrderedMarker(const std::string &text);
+        // Returns tuple of 1: position of marker, 2: length of number after marker
+        static std::tuple<size_t, size_t> findOrderedMarker(const std::string &text);
         static size_t findMarker(const std::string &text);
-        static ListMarker getListLevel(const std::string& line);
+        // Get indentation level and correctness (whenever asterisk, hyphen, or dot with number
+        // is found). If skipValidation is true, the correctness checks are skipped and
+        // correctness will always point to Invalid - this is only for optimization purposes
+        static ListMarker getListLevel(const std::string& line, bool skipValidation = false);
         static int getListIndentation(const std::string& line);
         static std::string getListText(const std::string& line);
         static std::string getListTextWithMarker(const std::string& line);
