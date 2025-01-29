@@ -1,6 +1,6 @@
-#include "paragraphelement.h"
-#include "linebreakelement.h"
-#include "document.h"
+#include "cppmarkdown/paragraphelement.h"
+#include "cppmarkdown/linebreakelement.h"
+#include "cppmarkdown/document.h"
 
 #include <catch2/catch_all.hpp>
 

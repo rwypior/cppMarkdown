@@ -1,4 +1,4 @@
-#include "linebreakelement.h"
+#include "cppmarkdown/linebreakelement.h"
 
 #include <cassert>
 #include <algorithm>

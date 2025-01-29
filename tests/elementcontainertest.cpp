@@ -1,6 +1,6 @@
-#include "document.h"
-#include "blankelement.h"
-#include "lineelement.h"
+#include "cppmarkdown/document.h"
+#include "cppmarkdown/blankelement.h"
+#include "cppmarkdown/lineelement.h"
 
 #include <catch2/catch_all.hpp>
 

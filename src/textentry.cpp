@@ -1,4 +1,4 @@
-#include "textentry.h"
+#include "cppmarkdown/textentry.h"
 
 #include <queue>
 #include <unordered_map>

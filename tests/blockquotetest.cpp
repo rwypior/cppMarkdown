@@ -1,4 +1,4 @@
-#include "blockquoteelement.h"
+#include "cppmarkdown/blockquoteelement.h"
 
 #include <catch2/catch_all.hpp>
 

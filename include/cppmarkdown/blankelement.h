@@ -1,8 +1,8 @@
 #ifndef _h_cppmarkdownblankelement
 #define _h_cppmarkdownblankelement
 
-#include "cppmarkdowncommon.h"
-#include "document.h"
+#include "cppmarkdown/cppmarkdowncommon.h"
+#include "cppmarkdown/document.h"
 
 #include <vector>
 

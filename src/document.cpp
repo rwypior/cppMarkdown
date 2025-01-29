@@ -1,15 +1,15 @@
-#include "document.h"
-#include "extensions.h"
+#include "cppmarkdown/document.h"
+#include "cppmarkdown/extensions.h"
 
-#include "paragraphelement.h"
-#include "linebreakelement.h"
-#include "headingelement.h"
-#include "blockquoteelement.h"
-#include "listelement.h"
-#include "codeelement.h"
-#include "lineelement.h"
-#include "blankelement.h"
-#include "referenceelement.h"
+#include "cppmarkdown/paragraphelement.h"
+#include "cppmarkdown/linebreakelement.h"
+#include "cppmarkdown/headingelement.h"
+#include "cppmarkdown/blockquoteelement.h"
+#include "cppmarkdown/listelement.h"
+#include "cppmarkdown/codeelement.h"
+#include "cppmarkdown/lineelement.h"
+#include "cppmarkdown/blankelement.h"
+#include "cppmarkdown/referenceelement.h"
 
 #include <fstream>
 #include <sstream>

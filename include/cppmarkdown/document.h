@@ -1,7 +1,7 @@
 #ifndef _h_cppmarkdowndocument
 #define _h_cppmarkdowndocument
 
-#include "cppmarkdowncommon.h"
+#include "cppmarkdown/cppmarkdowncommon.h"
 
 #include <vector>
 #include <functional>

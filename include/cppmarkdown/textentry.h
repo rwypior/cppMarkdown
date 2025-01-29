@@ -1,7 +1,7 @@
 #ifndef _h_cppmarkdowntextentry
 #define _h_cppmarkdowntextentry
 
-#include "cppmarkdowncommon.h"
+#include "cppmarkdown/cppmarkdowncommon.h"
 
 #include <string>
 #include <vector>

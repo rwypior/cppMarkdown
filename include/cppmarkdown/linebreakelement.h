@@ -1,8 +1,8 @@
 #ifndef _h_cppmarkdownlinebreakelement
 #define _h_cppmarkdownlinebreakelement
 
-#include "cppmarkdowncommon.h"
-#include "textentry.h"
+#include "cppmarkdown/cppmarkdowncommon.h"
+#include "cppmarkdown/textentry.h"
 
 namespace Markdown
 {

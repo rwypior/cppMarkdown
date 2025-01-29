@@ -1,5 +1,5 @@
-#include "ext/tableelement.h"
-#include "extensions.h"
+#include "cppmarkdown/ext/tableelement.h"
+#include "cppmarkdown/extensions.h"
 
 #include <catch2/catch_all.hpp>
 

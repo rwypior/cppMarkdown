@@ -1,5 +1,5 @@
-#include "lineelement.h"
-#include "paragraphelement.h"
+#include "cppmarkdown/lineelement.h"
+#include "cppmarkdown/paragraphelement.h"
 
 #include <cassert>
 

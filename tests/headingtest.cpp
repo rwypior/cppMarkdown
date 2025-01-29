@@ -1,5 +1,5 @@
-#include "headingelement.h"
-#include "document.h"
+#include "cppmarkdown/headingelement.h"
+#include "cppmarkdown/document.h"
 
 #include <catch2/catch_all.hpp>
 

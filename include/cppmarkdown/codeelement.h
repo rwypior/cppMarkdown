@@ -1,8 +1,8 @@
 #ifndef _h_cppmarkdowncodeelement
 #define _h_cppmarkdowncodeelement
 
-#include "cppmarkdowncommon.h"
-#include "textentry.h"
+#include "cppmarkdown/cppmarkdowncommon.h"
+#include "cppmarkdown/textentry.h"
 
 namespace Markdown
 {

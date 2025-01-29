@@ -1,5 +1,5 @@
-#include "linebreakelement.h"
-#include "document.h"
+#include "cppmarkdown/linebreakelement.h"
+#include "cppmarkdown/document.h"
 
 #include <catch2/catch_all.hpp>
 

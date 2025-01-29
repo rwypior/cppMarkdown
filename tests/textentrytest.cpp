@@ -1,4 +1,4 @@
-#include "textentry.h"
+#include "cppmarkdown/textentry.h"
 
 #include <catch2/catch_all.hpp>
 

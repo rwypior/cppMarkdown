@@ -30,6 +30,7 @@ target_include_directories (cppMarkdown PUBLIC
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
+add_subdirectory ("include/cppmarkdown")
 add_subdirectory ("src")
 
 if(${BUILD_TESTING})
@@ -63,7 +64,7 @@ install(
 
 install(
         DIRECTORY "include/"
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cppMarkdown"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
 
 export(EXPORT cppMarkdownTargets

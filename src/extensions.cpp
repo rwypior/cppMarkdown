@@ -1,7 +1,7 @@
-#include "extensions.h"
+#include "cppmarkdown/extensions.h"
 
-#include "ext/tableelement.h"
-#include "lineelement.h"
+#include "cppmarkdown/ext/tableelement.h"
+#include "cppmarkdown/lineelement.h"
 
 namespace Markdown
 {

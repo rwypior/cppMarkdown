@@ -1,8 +1,8 @@
 #ifndef _h_cppmarkdownblockquoteelement
 #define _h_cppmarkdownblockquoteelement
 
-#include "cppmarkdowncommon.h"
-#include "document.h"
+#include "cppmarkdown/cppmarkdowncommon.h"
+#include "cppmarkdown/document.h"
 
 #include <vector>
 

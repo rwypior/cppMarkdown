@@ -1,5 +1,5 @@
-#include "referenceelement.h"
-#include "document.h"
+#include "cppmarkdown/referenceelement.h"
+#include "cppmarkdown/document.h"
 
 #include <catch2/catch_all.hpp>
 

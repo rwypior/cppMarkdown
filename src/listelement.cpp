@@ -1,6 +1,6 @@
-#include "listelement.h"
-#include "linebreakelement.h"
-#include "blankelement.h"
+#include "cppmarkdown/listelement.h"
+#include "cppmarkdown/linebreakelement.h"
+#include "cppmarkdown/blankelement.h"
 
 #include <sstream>
 #include <cassert>

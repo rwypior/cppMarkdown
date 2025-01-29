@@ -1,9 +1,9 @@
 #ifndef _h_cppmarkdownlistelement
 #define _h_cppmarkdownlistelement
 
-#include "cppmarkdowncommon.h"
-#include "document.h"
-#include "textentry.h"
+#include "cppmarkdown/cppmarkdowncommon.h"
+#include "cppmarkdown/document.h"
+#include "cppmarkdown/textentry.h"
 
 #include <vector>
 

@@ -1,5 +1,5 @@
-#include "blockquoteelement.h"
-#include "cppmarkdowncommon.h"
+#include "cppmarkdown/blockquoteelement.h"
+#include "cppmarkdown/cppmarkdowncommon.h"
 
 #include <sstream>
 

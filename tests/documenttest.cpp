@@ -1,6 +1,6 @@
-#include "document.h"
-#include "headingelement.h"
-#include "paragraphelement.h"
+#include "cppmarkdown/document.h"
+#include "cppmarkdown/headingelement.h"
+#include "cppmarkdown/paragraphelement.h"
 
 #include <catch2/catch_all.hpp>
 

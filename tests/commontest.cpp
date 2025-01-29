@@ -1,4 +1,4 @@
-#include "cppmarkdowncommon.h"
+#include "cppmarkdown/cppmarkdowncommon.h"
 
 #include <catch2/catch_all.hpp>
 

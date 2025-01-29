@@ -1,5 +1,5 @@
-#include "blankelement.h"
-#include "linebreakelement.h"
+#include "cppmarkdown/blankelement.h"
+#include "cppmarkdown/linebreakelement.h"
 
 #include <sstream>
 #include <cassert>

@@ -1,6 +1,6 @@
-#include "cppmarkdowncommon.h"
-#include "document.h"
-#include "textentry.h"
+#include "cppmarkdown/cppmarkdowncommon.h"
+#include "cppmarkdown/document.h"
+#include "cppmarkdown/textentry.h"
 
 #include <unordered_map>
 #include <sstream>

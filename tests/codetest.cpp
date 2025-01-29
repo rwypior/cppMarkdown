@@ -1,5 +1,5 @@
-#include "codeelement.h"
-#include "document.h"
+#include "cppmarkdown/codeelement.h"
+#include "cppmarkdown/document.h"
 
 #include <catch2/catch_all.hpp>
 

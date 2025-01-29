@@ -1,9 +1,9 @@
 #ifndef _h_cppmarkdownext_tableelement
 #define _h_cppmarkdownext_tableelement
 
-#include "cppmarkdowncommon.h"
-#include "textentry.h"
-#include "document.h"
+#include "cppmarkdown/cppmarkdowncommon.h"
+#include "cppmarkdown/textentry.h"
+#include "cppmarkdown/document.h"
 
 namespace Markdown
 {

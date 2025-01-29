@@ -1,4 +1,4 @@
-#include "ext/tableelement.h"
+#include "cppmarkdown/ext/tableelement.h"
 
 #include <sstream>
 
