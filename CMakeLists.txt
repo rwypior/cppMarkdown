@@ -24,7 +24,7 @@ set_property(TARGET cppMarkdown PROPERTY CXX_STANDARD 17)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-include(cmake/CPM.cmake)
+#include(cmake/CPM.cmake)
 target_include_directories (cppMarkdown PUBLIC 
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"

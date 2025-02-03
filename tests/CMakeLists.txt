@@ -21,7 +21,7 @@ target_compile_definitions(cppMarkdownTest
         $<$<CONFIG:Debug>:DEBUG>
 )
 
-CPMAddPackage("gh:catchorg/Catch2@3.6.0")
+find_package(Catch2 3.6.0 REQUIRED)
 
 target_include_directories(cppMarkdownTest PRIVATE "${CMAKE_SOURCE_DIR}/include")
 target_include_directories(cppMarkdownTest PRIVATE "${CMAKE_SOURCE_DIR}/src")
