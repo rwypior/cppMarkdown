@@ -312,7 +312,7 @@ namespace Markdown
                 if (
                     pos >= text.size() - 1 || 
                     text[pos + 1] == c ||
-                    pos > 0 && !std::all_of(text.begin(), text.begin() + pos, std::isspace)
+                    pos > 0 && !std::all_of(text.begin(), text.begin() + pos, [](char c){ return std::isspace(c); })
                     )
                     continue;
 
