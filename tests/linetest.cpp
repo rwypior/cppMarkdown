@@ -47,20 +47,14 @@ TEST_CASE("Two lines in document", "[code]")
 	Markdown::Document doc;
 	doc.parse(markdown);
 
-	REQUIRE(doc.elementsCount() == 4);
-
-	auto it = doc.begin();
-
-	REQUIRE((*it)->getType() == Markdown::Type::Paragraph);
-	it++;
-
-	REQUIRE((*it)->getType() == Markdown::Type::LineBreak);
-	it++;
-
-	REQUIRE((*it)->getType() == Markdown::Type::Line);
-	it++;
-
-	REQUIRE((*it)->getType() == Markdown::Type::Line);
+	REQUIRE(doc.getHtml() ==
+		"<!DOCTYPE html><html><head></head><body>"
+		"<p>Some paragraph</p>"
+		"<br>"
+		"<hr>"
+		"<hr>"
+		"</body></html>"
+	);
 }
 
 TEST_CASE("Line types", "[code]")

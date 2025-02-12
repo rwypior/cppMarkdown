@@ -11,6 +11,23 @@ TEST_CASE("Parsing standard heading", "[heading]")
 	REQUIRE(el.getHtml() == "<h1>Heading!</h1>");
 }
 
+TEST_CASE("Simple heading in document", "[heading]")
+{
+	std::string markdown = R"md(A heading
+=====
+Some stuff)md";
+
+	Markdown::Document doc;
+	doc.parse(markdown);
+
+	REQUIRE(doc.getHtml() ==
+		"<!DOCTYPE html><html><head></head><body>"
+		"<h1>A heading</h1>"
+		"<p>Some stuff</p>"
+		"</body></html>"
+	);
+}
+
 TEST_CASE("Paragraph after heading", "[heading]")
 {
 	std::string markdown = R"md(A paragraph

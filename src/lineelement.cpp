@@ -22,21 +22,17 @@ namespace Markdown
         if (previous && previous->getType() == Type::Paragraph && !std::static_pointer_cast<ParagraphElement>(previous)->getText().empty())
             return ParseResult(ParseCode::Invalid);
 
+        if (line.empty() || line.length() < 3)
+            return ParseResult(ParseCode::Invalid);
+        
         std::vector<char> linechars = {'*', '-', '_'};
         std::string txttrimmed = trimmed(line);
 
-        bool good = false;
         for (char c : linechars)
         {
-            if (txttrimmed.find_first_not_of(c) == std::string::npos)
-            {
-                good = true;
-                break;
-            }
+            if (std::all_of(txttrimmed.begin(), txttrimmed.end(), [c](char current) { return c == current; }))
+                return ParseResult(ParseCode::ElementComplete);
         }
-
-        if (good)
-            return ParseResult(ParseCode::ElementComplete);
 
         return ParseResult(ParseCode::Invalid);
     }
