@@ -68,6 +68,8 @@ TEST_CASE("List find ordered marker", "[list]")
 	REQUIRE(ListElement::findOrderedMarker("123. something") == poslen{3, 3});
 	REQUIRE(ListElement::findOrderedMarker("    123. offset") == poslen{7, 3});
 	REQUIRE(ListElement::findOrderedMarker("    123. 456. offset") == poslen{7, 3});
+	REQUIRE(ListElement::findOrderedMarker("123. something -something else") == poslen{3, 3});
+	REQUIRE(ListElement::findOrderedMarker("123. something 456. another something") == poslen{3, 3});
 
 	REQUIRE(ListElement::findOrderedMarker("  42  123. offset") == invalid);
 	REQUIRE(ListElement::findOrderedMarker("  x  123. offset") == invalid);
@@ -81,6 +83,7 @@ TEST_CASE("List find unordered marker", "[list]")
 	REQUIRE(ListElement::findUnorderedMarker("- something") == 0);
 	REQUIRE(ListElement::findUnorderedMarker("    - offset") == 4);
 	REQUIRE(ListElement::findUnorderedMarker("  -  - half offset") == 2);
+	REQUIRE(ListElement::findUnorderedMarker("- something .1") == 0);
 
 	REQUIRE(ListElement::findUnorderedMarker("  42 - offset") == std::string::npos);
 	REQUIRE(ListElement::findUnorderedMarker("  x  - offset") == std::string::npos);
@@ -232,5 +235,49 @@ TEST_CASE("Simple list in document", "[list]")
 	);
 	REQUIRE((*it)->getHtml() ==
 		"<ol><li>First</li><li>Second</li><li>Third</li></ol>"
+	);
+}
+
+TEST_CASE("Text before and after list", "[list]")
+{
+	std::string markdown = R"md(Some text
+- First
+- Second
+- Third
+
+Some stuff)md";
+	Markdown::Document doc;
+	doc.parse(markdown);
+
+	REQUIRE(doc.getHtml() ==
+		"<!DOCTYPE html><html><head></head><body>"
+		"<p>Some text</p>"
+		"<ul>"
+		"<li>First</li>"
+		"<li>Second</li>"
+		"<li>Third</li>"
+		"</ul>"
+		"<br>"
+		"<p>Some stuff</p>"
+		"</body></html>"
+	);
+}
+
+TEST_CASE("List with elements with dots", "[list]")
+{
+	std::string markdown = R"md(- First
+- Second
+- Third...)md";
+	Markdown::Document doc;
+	doc.parse(markdown);
+
+	REQUIRE(doc.getHtml() ==
+		"<!DOCTYPE html><html><head></head><body>"
+		"<ul>"
+		"<li>First</li>"
+		"<li>Second</li>"
+		"<li>Third...</li>"
+		"</ul>"
+		"</body></html>"
 	);
 }

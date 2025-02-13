@@ -34,6 +34,9 @@ namespace Markdown
 				return ParseResult(ParseCode::Discard);
 		}
 
+		if (text.empty())
+			return ParseResult(ParseCode::Invalid);
+
 		this->text = TextEntry(text, getParagraphStyle());
 
 		return ParseResult(ParseCode::ElementComplete);

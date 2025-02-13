@@ -351,7 +351,8 @@ namespace Markdown
 
     size_t ListElement::findMarker(const std::string& text)
     {
-        auto pos = text.find_first_of('.');
+        auto poslen = findOrderedMarker(text);
+        auto pos = std::get<0>(poslen);
         if (pos == std::string::npos)
             pos = findUnorderedMarker(text);
         return pos;
@@ -437,7 +438,8 @@ namespace Markdown
         char search = tabs ? '\t' : ' ';
         int posNonWhitespace = line.find_first_not_of(search);
 
-        auto pos = line.find_first_of('.');
+        auto poslen = findOrderedMarker(line);
+        auto pos = std::get<0>(poslen);
         if (pos == std::string::npos)
             pos = findUnorderedMarker(line);
 
