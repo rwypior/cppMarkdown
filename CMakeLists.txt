@@ -9,11 +9,7 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_DEBUG_POSTFIX "d")
-else()
-    set(CMAKE_DEBUG_POSTFIX "")
-endif()
+set(CMAKE_DEBUG_POSTFIX "d")
 
 project ("cppMarkdown")
 add_library(cppMarkdown)
