@@ -218,6 +218,25 @@ TEST_CASE("Nested list", "[list]")
 		"</ol>Paragraph</li></ol>");
 }
 
+TEST_CASE("Long nested list", "[list]")
+{
+	Markdown::ListElement el(R"list(1. First
+2. Second
+    1. Nested 1
+    2. Nested 2
+3. Third)list");
+	INFO(el.dump());
+
+	REQUIRE(el.getHtml() == "<ol>"
+		"<li>First</li>"
+		"<li>Second<ol>"
+		"<li>Nested 1</li>"
+		"<li>Nested 2</li>"
+		"</ol></li>"
+		"<li>Third</li>"
+		"</ol>");
+}
+
 TEST_CASE("Simple list in document", "[list]")
 {
 	std::string markdown = R"md(1. First

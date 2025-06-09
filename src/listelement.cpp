@@ -61,6 +61,13 @@ namespace Markdown
         ListElement::ListMarker marker = ListElement::getListLevel(line);
 
         auto lastItem = this->getLastItem();
+
+        auto lastParentItem = this->parent->getLastItem();
+        if (!lastItem || marker.level <= lastParentItem->getListLevel())
+        {
+            return ParseResult(ParseCode::ElementCompleteParseNext);
+        }
+
         ParseResult result;
         if (auto container = std::dynamic_pointer_cast<ElementContainer>(lastItem))
         {
@@ -68,12 +75,6 @@ namespace Markdown
             result = container->parseLine(listText, previous, previous);
             if (result.element)
                 result.element->finalize();
-        }
-
-        auto lastParentItem = this->parent->getLastItem();
-        if (!lastItem || marker.level <= lastParentItem->getListLevel())
-        {
-            return ParseResult(ParseCode::ElementCompleteParseNext);
         }
 
         if (result.code == ParseCode::Invalid)
