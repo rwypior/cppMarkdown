@@ -313,7 +313,7 @@ namespace Markdown
 
 		if (matched)
 		{
-			size_t pos = matches.position(1);
+			size_t pos = offset + matches.position(1);
 			std::string full = std::next(matches.begin(), 1)->str();
 			std::string linktext = std::next(matches.begin(), 2)->str();
 			std::string linkurl = std::next(matches.begin(), 3)->str();
@@ -411,7 +411,7 @@ namespace Markdown
 
 		if (matched)
 		{
-			size_t pos = matches.position(1);
+			size_t pos = offset + matches.position(1);
 			std::string full = std::next(matches.begin(), 1)->str();
 			std::string linktext = std::next(matches.begin(), 2)->str();
 			std::string linkurl = std::next(matches.begin(), 3)->str();

@@ -84,3 +84,13 @@ TEST_CASE("Text entry in document", "[textentry]")
 	doc.parse("Simple *italic* text");
 	REQUIRE((*doc.begin())->getHtml() == "<p>Simple <i>italic</i> text</p>");
 }
+
+TEST_CASE("Italic and link in single TextEntry", "[textentry]")
+{
+	REQUIRE(Markdown::TextEntry("Some text *italic* and [Some link](link)").getHtml() == "Some text <i>italic</i> and <a href=\"link\">Some link</a>");
+}
+
+TEST_CASE("Italic and image in single TextEntry", "[textentry]")
+{
+	REQUIRE(Markdown::TextEntry("Some text *italic* and ![Some image](Link)").getHtml() == "Some text <i>italic</i> and <img src=\"Link\" alt=\"Some image\">");
+}
