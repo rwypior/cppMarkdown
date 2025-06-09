@@ -281,3 +281,22 @@ TEST_CASE("List with elements with dots", "[list]")
 		"</body></html>"
 	);
 }
+
+TEST_CASE("List with styles", "[list]")
+{
+	std::string markdown = R"md(- First
+- Second **this is bold!**
+- Third)md";
+	Markdown::Document doc;
+	doc.parse(markdown);
+
+	REQUIRE(doc.getHtml() ==
+		"<!DOCTYPE html><html><head></head><body>"
+		"<ul>"
+		"<li>First</li>"
+		"<li>Second <b>this is bold!</b></li>"
+		"<li>Third</li>"
+		"</ul>"
+		"</body></html>"
+	);
+}

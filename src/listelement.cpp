@@ -94,7 +94,7 @@ namespace Markdown
             el->parent = this;
 
         if (!this->elements.empty() && this->elements.front()->getType() == Type::Paragraph)
-            this->replaceElement(this->elements.begin(), std::make_shared<BlankElement>(this->elements.front()->getText()));
+            this->replaceElement(this->elements.begin(), std::make_shared<BlankElement>(this->elements.front()->getInnerHtml()));
 
         this->iterate(prependBlankElementsWithNewlines);
     }

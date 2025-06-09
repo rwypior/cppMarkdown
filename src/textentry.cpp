@@ -536,7 +536,7 @@ namespace Markdown
 		return text;
 	}
 
-	std::string TextEntry::getHtml(HtmlOptions) const
+	std::string TextEntry::getHtml() const
 	{
 		std::deque<std::pair<size_t, Style>> tags;
 
@@ -544,6 +544,22 @@ namespace Markdown
 		for (const auto& span : this->spans)
 		{
 			html += span->getHtml();
+		}
+
+		return html;
+	}
+
+	std::string TextEntry::getInnerHtml() const
+	{
+		std::deque<std::pair<size_t, Style>> tags;
+
+		std::string html;
+		for (const auto& span : this->spans)
+		{
+			for (const auto& child : span->children)
+			{
+				html += child->getHtml();
+			}
 		}
 
 		return html;

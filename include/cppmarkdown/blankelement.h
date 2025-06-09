@@ -3,6 +3,7 @@
 
 #include "cppmarkdown/cppmarkdowncommon.h"
 #include "cppmarkdown/document.h"
+#include "cppmarkdown/textentry.h"
 
 #include <vector>
 
@@ -22,7 +23,7 @@ namespace Markdown
         virtual std::string getMarkdown() const override { return ""; }
 
     protected:
-        std::string text;
+        TextEntry text;
     };
 
     // Convert any element to blank element with source element's text

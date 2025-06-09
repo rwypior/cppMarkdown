@@ -92,13 +92,6 @@ namespace Markdown
     };
     DEFINE_BITFIELD(Type);
 
-    enum class ElementOptions
-    {
-        Normal = 0x00,  // No special options applied
-        Raw = 0x01      // Drop HTML tags when obtaining HTML output
-    };
-    DEFINE_BITFIELD(ElementOptions);
-
     std::string typeToString(Type type);
 
     class Element;
@@ -124,7 +117,6 @@ namespace Markdown
     class Element
     {
     public:
-        ElementOptions options = ElementOptions::Normal;
         Element* parent = nullptr;
 
         virtual ~Element() = default;
@@ -156,6 +148,7 @@ namespace Markdown
 
         virtual std::string getText() const { return ""; }
         virtual std::string getHtml() const { return ""; }
+        virtual std::string getInnerHtml() const { return this->getHtml(); }
         virtual std::string getMarkdown() const { return ""; }
         virtual std::string dump(int indent = 0) const;
     };

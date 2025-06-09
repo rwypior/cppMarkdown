@@ -96,7 +96,8 @@ namespace Markdown
         virtual const Container& getSpans() const override;
 
         std::string getText() const;
-        std::string getHtml(HtmlOptions flags = HtmlOptions::Normal) const;
+        std::string getHtml() const;
+        std::string getInnerHtml() const;
         std::string getMarkdown() const;
 
         bool empty() const;

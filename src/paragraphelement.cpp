@@ -6,9 +6,6 @@ namespace Markdown
 {
 	std::shared_ptr<MarkdownStyle> ParagraphElement::getParagraphStyle() const
 	{
-		if (this->options & ElementOptions::Raw)
-			return MarkdownStyle::makeHtml("", "");
-		
 		return MarkdownStyle::makeHtml("<p>", "</p>");
 	}
 
@@ -49,12 +46,12 @@ namespace Markdown
 
 	std::string ParagraphElement::getHtml() const
 	{
-		TextEntry::HtmlOptions options = TextEntry::HtmlOptions::Normal;
+		return this->text.getHtml();
+	}
 
-		if (this->options & ElementOptions::Raw)
-			options |= TextEntry::HtmlOptions::SkipDefaultTags;
-
-		return this->text.getHtml(options);
+	std::string ParagraphElement::getInnerHtml() const
+	{
+		return this->text.getInnerHtml();
 	}
 
 	std::string ParagraphElement::getMarkdown() const

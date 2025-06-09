@@ -23,12 +23,12 @@ namespace Markdown
 
     std::string BlankElement::getText() const
     {
-        return this->text;
+        return this->text.getText();
     }
 
     std::string BlankElement::getHtml() const
     {
-        return this->text;
+        return this->text.getHtml();
     }
 
     // Util
