@@ -73,6 +73,8 @@ namespace Markdown
     class Document : public ElementContainer
     {
     public:
+        bool addCharset = false;
+
         static Document load(const std::string& path);
         virtual void parse(const std::string& content, Type mask = Type::None) override;
 

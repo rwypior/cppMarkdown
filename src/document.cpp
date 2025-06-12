@@ -309,7 +309,10 @@ namespace Markdown
 	
 	std::string Document::getHtml() const
 	{
-		std::string result = "<!DOCTYPE html><html><head></head><body>";
+		std::string result = "<!DOCTYPE html><html><head>";
+		if (this->addCharset)
+			result += "<meta charset=\"utf-8\">";
+		result += "</head><body>";
 		for (const auto &el : *this)
 		{
 			result += el->getHtml();

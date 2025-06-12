@@ -50,6 +50,12 @@ TEST_CASE("Links", "[textentry]")
 	REQUIRE(te.getHtml() == "<a href=\"link\">Text</a>");
 }
 
+TEST_CASE("Links with escapes", "[textentry]")
+{
+	Markdown::TextEntry te("[Text](link with (parentheses\\) and \\\"quotes\\\")");
+	REQUIRE(te.getHtml() == "<a href=\"link with (parentheses) and &quot;quotes&quot;\">Text</a>");
+}
+
 TEST_CASE("Mixed links", "[textentry]")
 {
 	Markdown::TextEntry te("This is some [Text](link) blabla");

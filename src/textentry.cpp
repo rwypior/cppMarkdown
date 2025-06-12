@@ -2,7 +2,6 @@
 
 #include <queue>
 #include <unordered_map>
-#include <regex>
 
 namespace Markdown
 {
@@ -295,39 +294,85 @@ namespace Markdown
 		return result;
 	}
 
+	// Generic link syntax
+
+	template<typename Span, typename Style>
+	MarkdownStyle::Result findLink(const std::string& str, size_t offset, const Style& style)
+	{
+		// Find text syntax
+		size_t begin = str.find_first_of('[', offset);
+
+		size_t end = begin;
+		bool found = false;
+		do
+		{
+			end = str.find_first_of(']', end);
+			if (end == std::string::npos || str[end - 1] == '\\')
+				continue;
+			found = true;
+		} while (end != std::string::npos && !found);
+
+		if (end == std::string::npos)
+			return {};
+
+		if (end + 1 == str.length())
+			return {};
+
+		// Find url syntax
+		size_t beginUrl = end + 1;
+		bool referenceStyle = false;
+		char enclosure = ')';
+
+		// Reference-style?
+		if (str.at(end + 1) != '(')
+		{
+			while (std::isspace(str.at(beginUrl)))
+				beginUrl++;
+
+			if (str.at(beginUrl) != '[')
+				return {};
+
+			referenceStyle = true;
+			enclosure = ']';
+		}
+
+		// Find actual url syntax
+		size_t endUrl = end + 1;
+		bool foundUrl = false;
+		do
+		{
+			endUrl = str.find_first_of(enclosure, endUrl);
+			if (str[endUrl - 1] == '\\')
+			{
+				endUrl++;
+				continue;
+			}
+			foundUrl = true;
+		} while (endUrl != std::string::npos && !foundUrl);
+
+		if (!foundUrl)
+			return {};
+
+		// Assemble span
+		std::string text = str.substr(begin + 1, end - begin - 1);
+		std::string url = str.substr(beginUrl + 1, endUrl - beginUrl - 1);
+
+		url.erase(std::remove(url.begin(), url.end(), '\\'), url.end());
+		replace_in(url, "\"", "&quot;");
+
+		ReferenceManager* refman = referenceStyle ? ReferenceManager::get() : nullptr;
+		return {
+			begin,
+			endUrl - begin + 1,
+			std::make_unique<Span>(text, url, std::make_shared<Style>(style), Markdown::SpanContainer::Container{}, refman)
+		};
+	}
+
 	// Link style
 
 	MarkdownStyle::Result LinkStyle::findIn(const std::string& str, size_t offset, const StyleContainer& /*stylemap*/) const
 	{
-		std::regex regex(R"r(.*(\[(.+?)\]\((.*?)\)).*)r");
-		std::regex regexRef(R"r(.*(\[(.+?)\] ?\[(.*?)\]).*)r");
-
-		std::smatch matches;
-
-		bool matchedStandard = std::regex_match(std::next(str.begin(), offset), str.end(), matches, regex);
-		bool matchedReference = false;
-		if (!matchedStandard)
-			matchedReference = std::regex_match(std::next(str.begin(), offset), str.end(), matches, regexRef);
-
-		bool matched = matchedStandard || matchedReference;
-
-		if (matched)
-		{
-			size_t pos = offset + matches.position(1);
-			std::string full = std::next(matches.begin(), 1)->str();
-			std::string linktext = std::next(matches.begin(), 2)->str();
-			std::string linkurl = std::next(matches.begin(), 3)->str();
-
-			ReferenceManager *refman = matchedReference ? ReferenceManager::get() : nullptr;
-
-			return {
-				pos,
-				full.size(),
-				std::make_unique<LinkSpan>(linktext, linkurl, std::make_shared<LinkStyle>(*this), Markdown::SpanContainer::Container{}, refman)
-			};
-		}
-
-		return { };
+		return findLink<LinkSpan, LinkStyle>(str, offset, *this);
 	}
 
 	// Link span
@@ -397,35 +442,24 @@ namespace Markdown
 
 	MarkdownStyle::Result ImageStyle::findIn(const std::string& str, size_t offset, const StyleContainer& /*stylemap*/) const
 	{
-		std::regex regex(R"r(.*(!\[(.+?)\]\((.*?)\)).*)r");
-		std::regex regexRef(R"r(.*(!\[(.+?)\] ?\[(.*?)\]).*)r");
-
-		std::smatch matches;
-
-		bool matchedStandard = std::regex_match(std::next(str.begin(), offset), str.end(), matches, regex);
-		bool matchedReference = false;
-		if (!matchedStandard)
-			matchedReference = std::regex_match(std::next(str.begin(), offset), str.end(), matches, regexRef);
-
-		bool matched = matchedStandard || matchedReference;
-
-		if (matched)
+		MarkdownStyle::Result result;
+		size_t begin = std::string::npos;
+		do
 		{
-			size_t pos = offset + matches.position(1);
-			std::string full = std::next(matches.begin(), 1)->str();
-			std::string linktext = std::next(matches.begin(), 2)->str();
-			std::string linkurl = std::next(matches.begin(), 3)->str();
+			begin = str.find_first_of('!', offset);
+			if (begin == std::string::npos)
+				return {};
 
-			ReferenceManager* refman = matchedReference ? ReferenceManager::get() : nullptr;
+			result = findLink<ImageSpan, ImageStyle>(str, begin + 1, *this);
+			if (!result)
+				return result;
 
-			return {
-				pos,
-				full.size(),
-				std::make_unique<ImageSpan>(linktext, linkurl, std::make_shared<ImageStyle>(*this), Markdown::SpanContainer::Container{}, refman)
-			};
-		}
+			result.position -= 1;
+			result.length += 1;
+			offset++;
+		} while (!result);
 
-		return { };
+		return result;
 	}
 
 	// Image span

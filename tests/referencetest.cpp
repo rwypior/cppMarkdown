@@ -22,6 +22,16 @@ TEST_CASE("Reference parsing", "[line]")
 	REQUIRE(el4.getId() == "id");
 	REQUIRE(el4.getValue() == "value");
 	REQUIRE(el4.getTitle() == "title");
+
+	Markdown::ReferenceElement el5("[id]: value\\ with\\ spaces \'title\'");
+	REQUIRE(el5.getId() == "id");
+	REQUIRE(el5.getValue() == "value with spaces");
+	REQUIRE(el5.getTitle() == "title");
+
+	Markdown::ReferenceElement el6("[id]: value\\ with\\ spaces \'title with spaces \\'and apostrophes\\'\'");
+	REQUIRE(el6.getId() == "id");
+	REQUIRE(el6.getValue() == "value with spaces");
+	REQUIRE(el6.getTitle() == "title with spaces \'and apostrophes\'");
 }
 
 TEST_CASE("Reference manager registration", "[line]")
