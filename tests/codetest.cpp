@@ -32,6 +32,23 @@ TEST_CASE("Simple code block", "[code]")
 	REQUIRE(el2.getHtml() == "<code>This is *some* code with __some special__ stuff</code>");
 }
 
+TEST_CASE("Lone code block in document", "[code]")
+{
+	std::string markdown = R"md(    This is a code block)md";
+
+	Markdown::Document doc;
+	doc.parse(markdown);
+
+	INFO(doc.dump());
+
+	REQUIRE(doc.elementsCount() == 1);
+
+	auto it = doc.begin();
+	REQUIRE((*it)->getType() == Markdown::Type::Code);
+	REQUIRE((*it)->getText() == "This is a code block");
+	REQUIRE((*it)->getHtml() == "<code>This is a code block</code>");
+}
+
 TEST_CASE("Code block in document", "[code]")
 {
 	std::string markdown = R"md(Some paragraph

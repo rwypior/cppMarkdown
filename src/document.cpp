@@ -72,7 +72,7 @@ namespace Markdown
 				retry = false;
 				result = this->parseLine(line, previousElement, activeElement, mask);
 
-				if (result.flags & ParseFlags::ErasePrevious)
+				if (result.flags & ParseFlags::ErasePrevious && !this->elements.empty())
 				{
 					previousElement = nullptr;
 					this->elements.pop_back();
