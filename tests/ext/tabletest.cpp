@@ -134,3 +134,85 @@ TEST_CASE("Table parsing in document", "[table]")
         "</body></html>"
     );
 }
+
+TEST_CASE("Table parsing in complex document", "[table]")
+{
+    Markdown::registerStandardExtensions();
+
+    std::string tableMarkdown =
+        "Something blabla\n"
+        "\n"
+        "A   |B \n"
+        "----|--\n"
+        "1   |2 \n"
+        "a   |b \n"
+        "\n"
+        "Stuff\n";
+    Markdown::Document doc;
+    doc.parse(tableMarkdown);
+
+    REQUIRE(doc.getHtml() ==
+        "<!DOCTYPE html><html><head></head><body>"
+        "<p>Something blabla</p>"
+        "<br>" // Do we want this line break here?
+        "<table>"
+        "<tr><th>A</th><th>B</th></tr>"
+        "<tr><td>1</td><td>2</td></tr>"
+        "<tr><td>a</td><td>b</td></tr>"
+        "</table>"
+        "<p>Stuff</p>"
+        "</body></html>"
+    );
+}
+
+TEST_CASE("Table header only", "[table]")
+{
+    Markdown::registerStandardExtensions();
+
+    std::string tableMarkdown =
+        "A   |B \n";
+    Markdown::Document doc;
+    doc.parse(tableMarkdown);
+
+    REQUIRE(doc.getHtml() ==
+        "<!DOCTYPE html><html><head></head><body>"
+        "<table>"
+        "<tr><th>A</th><th>B</th></tr>"
+        "</table>"
+        "</body></html>"
+    );
+}
+
+TEST_CASE("Incomplete table", "[table]")
+{
+    Markdown::registerStandardExtensions();
+
+    std::string tableMarkdown =
+        "A   |B \n";
+        "----|--\n";
+    Markdown::Document doc;
+    doc.parse(tableMarkdown);
+
+    REQUIRE(doc.getHtml() ==
+        "<!DOCTYPE html><html><head></head><body>"
+        "<table>"
+        "<tr><th>A</th><th>B</th></tr>"
+        "</table>"
+        "</body></html>"
+    );
+}
+
+TEST_CASE("Document without table", "[table]")
+{
+    Markdown::registerStandardExtensions();
+
+    std::string tableMarkdown = "Whatever";
+    Markdown::Document doc;
+    doc.parse(tableMarkdown);
+
+    REQUIRE(doc.getHtml() ==
+        "<!DOCTYPE html><html><head></head><body>"
+        "<p>Whatever</p>"
+        "</body></html>"
+    );
+}

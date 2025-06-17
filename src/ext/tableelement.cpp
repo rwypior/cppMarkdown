@@ -23,11 +23,19 @@ namespace Markdown
             return ParseResult(ParseCode::RequestMore);
         }
 
-        return ParseResult(ParseCode::Discard);
+        return ParseResult(ParseCode::Invalid);
     }
 
     ParseResult TableElement::supply(const std::string& line, std::shared_ptr<Element> previous)
     {
+        if (line.empty())
+        {
+            if (!this->rows.empty())
+                return ParseResult(ParseCode::ElementCompleteParseNext);
+
+            return ParseResult(ParseCode::Invalid);
+        }
+
         if (!(this->flags & Flags::Started))
         {
             if (tableLineValid(line, this->columnCount()))
@@ -36,14 +44,14 @@ namespace Markdown
                 return ParseResult(ParseCode::RequestMore);
             }
             else
-                return ParseResult(ParseCode::Discard);
+                return ParseResult(ParseCode::Invalid);
         }
 
         size_t parsedColumns = parseColumnCount(line);
         if (parsedColumns != this->columnCount())
         {
             if (this->rows.empty())
-                return ParseResult(ParseCode::Discard);
+                return ParseResult(ParseCode::Invalid);
 
             return ParseResult(ParseCode::ElementComplete);
         }
