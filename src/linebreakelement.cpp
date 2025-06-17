@@ -11,13 +11,19 @@ namespace Markdown
     }
 
     ParseResult LineBreakElement::parse(const std::string& line, std::shared_ptr<Element> previous)
-    {
-        if (previous && previous->getType() == Type::LineBreak)
-            // Discard double line breaks
-            return ParseResult(ParseCode::Invalid);
-        
+    {        
         if (!isAllWhitespace(line))
             return ParseResult(ParseCode::Invalid);
+
+        if (previous && previous->getType() == Type::LineBreak)
+        {
+            // Discard double line breaks
+            
+            // Make one of consecutive line breaks not to be deleted in finalize step
+            // TODO - Not sure if this is correct for Markdown syntax, need to check
+            std::static_pointer_cast<LineBreakElement>(previous)->skippable = false;
+            return ParseResult(ParseCode::Invalid);
+        }
             
         this->skippable = isSkippable(line);
 

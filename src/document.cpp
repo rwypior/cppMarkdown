@@ -291,6 +291,39 @@ namespace Markdown
 	{
 		ReferenceManager::ContextGuard cg(this->referenceManager);
 		ElementContainer::parse(content, mask);
+		this->finalize();
+	}
+
+	void Document::finalize()
+	{
+		std::shared_ptr<Element> previous = nullptr;
+		auto it = this->elements.begin();
+		while(it != this->elements.end())
+		{
+			FinalizeAction result = FinalizeAction::None;
+
+			do {
+				auto& element = *it;
+				result = element->documentFinalize(previous);
+				previous = element;
+
+				if (result & FinalizeAction::ErasePrevious && it != this->elements.begin())
+				{
+					it = this->elements.erase(it - 1);
+						previous = *(it);
+						it++;
+				}
+				else if (result & FinalizeAction::ErasePrevious && it == this->elements.begin())
+				{
+					assert(!"No element should return ErasePrevious if it's the first element");
+					previous = nullptr;
+					it++;
+					break;
+				}
+				else
+					it++;
+			} while (result & FinalizeAction::Continue && it != this->elements.end());
+		}
 	}
 
 	std::string Document::getText() const

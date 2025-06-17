@@ -1,4 +1,5 @@
 #include "cppmarkdown/paragraphelement.h"
+#include "cppmarkdown/linebreakelement.h"
 
 #include <vector>
 
@@ -23,20 +24,31 @@ namespace Markdown
 	{
 		std::string text = getMarkdownText(line);
 
-		if (previous && previous->getType() == Type::Paragraph)
-		{
-			auto previousParagraph = std::static_pointer_cast<ParagraphElement>(previous);
-
-			if (text.empty() && previousParagraph->text.empty())
-				return ParseResult(ParseCode::Discard);
-		}
-
 		if (text.empty())
 			return ParseResult(ParseCode::Invalid);
 
 		this->text = TextEntry(text, getParagraphStyle());
 
 		return ParseResult(ParseCode::ElementComplete);
+	}
+
+	FinalizeAction ParagraphElement::documentFinalize(std::shared_ptr<Element> previous)
+	{
+		if (previous && previous->getType() == Type::Paragraph)
+		{
+			auto previousParagraph = std::static_pointer_cast<ParagraphElement>(previous);
+			
+			if (!text.empty() && !previousParagraph->text.empty())
+			{
+				this->text = TextEntry(previousParagraph->getMarkdown() + " " + this->getMarkdown(), getParagraphStyle());
+				return FinalizeAction::ErasePrevious | FinalizeAction::Continue;
+			}
+		}
+
+		if (previous && previous->getType() == Type::LineBreak && std::static_pointer_cast<LineBreakElement>(previous)->skippable)
+			return FinalizeAction::ErasePrevious;
+
+		return FinalizeAction::None;
 	}
 
 	std::string ParagraphElement::getText() const
@@ -56,6 +68,6 @@ namespace Markdown
 
 	std::string ParagraphElement::getMarkdown() const
 	{
-		return this->text.getText();
+		return this->text.getMarkdown();
 	}
 }

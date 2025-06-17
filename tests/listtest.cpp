@@ -276,7 +276,6 @@ Some stuff)md";
 		"<li>Second</li>"
 		"<li>Third</li>"
 		"</ul>"
-		"<br>"
 		"<p>Some stuff</p>"
 		"</body></html>"
 	);

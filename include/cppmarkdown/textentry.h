@@ -31,6 +31,10 @@ namespace Markdown
         virtual Container& getSpans() = 0;
         virtual const Container& getSpans() const = 0;
 
+        // Checks if the only child has only one child with the same style
+        // and remove the duplication by moving grandchild in place of child
+        void removeNestedDuplicates();
+
         bool hasSpans() const
         {
             return !this->getSpans().empty();
@@ -150,6 +154,8 @@ namespace Markdown
 
         virtual ~MarkdownStyle() = default;
 
+        virtual bool operator==(const MarkdownStyle& b) const = 0;
+
         template<typename T = GenericStyle>
         static std::shared_ptr<T> makeHtml(const std::string& opening, const std::string& closing)
         {
@@ -171,6 +177,8 @@ namespace Markdown
             : MarkdownStyle(markdownOpening, markdownClosing, htmlOpening, htmlClosing, acceptsSubstyles, autoescape)
         { }
 
+        virtual bool operator==(const MarkdownStyle& b) const override;
+
         virtual Result findIn(const std::string& str, size_t offset, const StyleContainer& stylemap) const override;
     };
 
@@ -190,6 +198,8 @@ namespace Markdown
             virtual std::string getMarkdown() const override;
         };
 
+        virtual bool operator==(const MarkdownStyle& b) const override;
+
         virtual Result findIn(const std::string& str, size_t offset, const StyleContainer& stylemap) const override;
     };
 
@@ -208,6 +218,8 @@ namespace Markdown
             virtual std::string getHtml() const override;
             virtual std::string getMarkdown() const override;
         };
+
+        virtual bool operator==(const MarkdownStyle& b) const override;
 
         virtual Result findIn(const std::string& str, size_t offset, const StyleContainer& stylemap) const override;
     };

@@ -33,7 +33,6 @@ Second paragraph)md";
 	REQUIRE(doc.getHtml() ==
 		"<!DOCTYPE html><html><head></head><body>"
 		"<p>First paragraph</p>"
-		"<br>"
 		"<p>Second paragraph</p>"
 		"</body></html>"
 	);
@@ -51,7 +50,6 @@ Second paragraph)md";
 	REQUIRE(doc.getHtml() ==
 		"<!DOCTYPE html><html><head></head><body>"
 		"<h1>Title</h1>"
-		"<br>"
 		"<p>Second paragraph</p>"
 		"</body></html>"
 	);
@@ -84,6 +82,7 @@ TEST_CASE("Line break before list", "[document]")
 TEST_CASE("Multiple line breaks", "[document]")
 {
 	std::string markdown = R"md(Para 1
+
 Para 2
 
 Para 3
@@ -98,7 +97,6 @@ Para 4)md";
 		"<!DOCTYPE html><html><head></head><body>"
 		"<p>Para 1</p>"
 		"<p>Para 2</p>"
-		"<br>"
 		"<p>Para 3</p>"
 		"<br>"
 		"<p>Para 4</p>"

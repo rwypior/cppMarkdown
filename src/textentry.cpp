@@ -42,10 +42,6 @@ namespace Markdown
 	)
 	{
 		StyleContainer stylemap{
-			std::make_shared<GenericStyle>("***", "***", Style("<b><i>", "</i></b>")),
-			std::make_shared<GenericStyle>("___", "___", Style("<b><i>", "</i></b>")),
-			std::make_shared<GenericStyle>("__*", "*__", Style("<b><i>", "</i></b>")),
-			std::make_shared<GenericStyle>("**_", "_**", Style("<b><i>", "</i></b>")),
 			std::make_shared<GenericStyle>("**", "**", Style("<b>", "</b>")),
 			std::make_shared<GenericStyle>("__", "__", Style("<b>", "</b>")),
 			std::make_shared<GenericStyle>("``", "``", Style("<code>", "</code>"), false, std::vector<std::string>({"`"})),
@@ -94,6 +90,11 @@ namespace Markdown
 	}
 
 	// Generic style
+
+	bool GenericStyle::operator==(const MarkdownStyle& b) const
+	{
+		return this->style.openingTag == b.style.openingTag && this->style.closingTag == b.style.closingTag;
+	}
 
 	MarkdownStyle::Result GenericStyle::findIn(const std::string& str, size_t offset, const StyleContainer& stylemap) const
 	{
@@ -169,6 +170,7 @@ namespace Markdown
 
 			for (auto& span : foundSpans)
 			{
+				span->parse(span->getText(), nullptr, SpanSearchFlags::Normal);
 				spans.back()->children.emplace_back(std::move(span));
 			}
 		}
@@ -176,13 +178,29 @@ namespace Markdown
 		{
 			for (auto& span : foundSpans)
 			{
+				span->parse(span->getText(), nullptr, SpanSearchFlags::Normal);
 				spans.emplace_back(std::move(span));
 			}
 		}
+	}
 
-		for (auto& span : spans)
+	void SpanContainer::removeNestedDuplicates()
+	{
+		if (this->getSpans().size() == 1 && this->getSpans().front()->getSpans().size() == 1)
 		{
-			span->parse(span->getText(), nullptr, SpanSearchFlags::Normal);
+			auto& child = this->getSpans().front();
+			auto& grandchild = child->getSpans().front();
+			if (child->style && grandchild->style && *child->style == *grandchild->style)
+			{
+				auto& childSpans = child->getSpans();
+				auto& grandchildSpans = grandchild->getSpans();
+				childSpans.insert(childSpans.end(),
+					std::make_move_iterator(grandchildSpans.begin()),
+					std::make_move_iterator(grandchildSpans.end())
+				);
+				child->text = grandchild->text;
+				childSpans.erase(childSpans.begin());
+			}
 		}
 	}
 
@@ -370,6 +388,11 @@ namespace Markdown
 
 	// Link style
 
+	bool LinkStyle::operator==(const MarkdownStyle& b) const
+	{
+		return false;
+	}
+
 	MarkdownStyle::Result LinkStyle::findIn(const std::string& str, size_t offset, const StyleContainer& /*stylemap*/) const
 	{
 		return findLink<LinkSpan, LinkStyle>(str, offset, *this);
@@ -383,12 +406,7 @@ namespace Markdown
 		, url(url)
 		, refman(refman)
 	{
-		auto spans = this->findStyle(text, {}, SpanSearchFlags::Normal);
-		if (spans.size() > 1 || (spans.size() == 1 && spans.front()->style))
-		{
-			this->text = "";
-			this->children = std::move(spans);
-		}
+		SpanContainer::parse(text);
 	}
 
 	std::unique_ptr<Span> LinkStyle::LinkSpan::clone() const
@@ -439,6 +457,11 @@ namespace Markdown
 	}
 
 	// Image style
+
+	bool ImageStyle::operator==(const MarkdownStyle& b) const
+	{
+		return false;
+	}
 
 	MarkdownStyle::Result ImageStyle::findIn(const std::string& str, size_t offset, const StyleContainer& /*stylemap*/) const
 	{
@@ -530,6 +553,7 @@ namespace Markdown
 	TextEntry::TextEntry(const std::string& content, const std::shared_ptr<MarkdownStyle> defaultStyle)
 	{
 		this->parse(content, defaultStyle);
+		this->removeNestedDuplicates();
 	}
 
 	TextEntry::TextEntry(const TextEntry& b)

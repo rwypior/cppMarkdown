@@ -73,6 +73,14 @@ namespace Markdown
     };
     DEFINE_BITFIELD(ParseFlags);
 
+    enum class FinalizeAction
+    {
+        None = 0x00,
+        ErasePrevious = 0x01,
+        Continue = 0x02,
+    };
+    DEFINE_BITFIELD(FinalizeAction);
+
     enum class Type
     {
         None,
@@ -132,6 +140,9 @@ namespace Markdown
 
         // Finalize element parsing after parse and/or supply functions declared the parsing is finished
         virtual void finalize() {};
+
+        // Finalize element after the whole document has been parsed
+        virtual FinalizeAction documentFinalize(std::shared_ptr<Element> previous) { return FinalizeAction::None; };
 
         // Get element's level in the tree structure
         unsigned int getLevel() const

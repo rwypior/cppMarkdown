@@ -24,6 +24,35 @@ TEST_CASE("Bold text entry", "[textentry]")
 	REQUIRE(te.getHtml() == "<b>bold</b>");
 }
 
+TEST_CASE("Bold italic entry", "[textentry]")
+{
+	Markdown::TextEntry te("**_bold_**");
+	REQUIRE(te.getText() == "bold");
+	REQUIRE(te.getHtml() == "<b><i>bold</i></b>");
+}
+
+TEST_CASE("Mixed bold styles", "[textentry]")
+{
+	Markdown::TextEntry te("**__bold__**");
+	REQUIRE(te.getText() == "bold");
+	REQUIRE(te.getHtml() == "<b>bold</b>");
+}
+
+TEST_CASE("Mixed nested styles", "[textentry]")
+{
+	{
+		Markdown::TextEntry te("**bold _italic_**");
+		REQUIRE(te.getText() == "bold italic");
+		REQUIRE(te.getHtml() == "<b>bold <i>italic</i></b>");
+	}
+
+	{
+		Markdown::TextEntry te("**some bold text _and italic_ and bold again**");
+		REQUIRE(te.getText() == "some bold text and italic and bold again");
+		REQUIRE(te.getHtml() == "<b>some bold text <i>and italic</i> and bold again</b>");
+	}
+}
+
 TEST_CASE("Mixed italic and bold text entry", "[textentry]")
 {
 	Markdown::TextEntry te("a bit of *italic* and some **bold** end");
@@ -66,6 +95,12 @@ TEST_CASE("Links with styles", "[textentry]")
 {
 	Markdown::TextEntry te("[**Bold** text](link)");
 	REQUIRE(te.getHtml() == "<a href=\"link\"><b>Bold</b> text</a>");
+}
+
+TEST_CASE("Links with nested styles", "[textentry]")
+{
+	Markdown::TextEntry te("[**Bold _italic_** text](link)");
+	REQUIRE(te.getHtml() == "<a href=\"link\"><b>Bold <i>italic</i></b> text</a>");
 }
 
 TEST_CASE("Inline code", "[textentry]")

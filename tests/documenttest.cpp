@@ -19,9 +19,24 @@ TEST_CASE("Single paragraph", "[document]")
 	REQUIRE((*it)->getText() == "paragraph 1");
 }
 
+TEST_CASE("Multiline paragraph", "[document]")
+{
+	std::string markdown = R"md(paragraph 1
+another line)md";
+	Markdown::Document doc;
+	doc.parse(markdown);
+
+	REQUIRE(doc.elementsCount() == 1);
+
+	auto it = doc.begin();
+
+	REQUIRE((*it)->getText() == "paragraph 1 another line");
+}
+
 TEST_CASE("Two paragraphs", "[document]")
 {
 	std::string markdown = R"md(paragraph 1
+
 paragraph 2)md";
 	Markdown::Document doc;
 	doc.parse(markdown);
@@ -37,6 +52,8 @@ paragraph 2)md";
 TEST_CASE("Complex document", "[document]")
 {
 	std::string markdown = R"md(First paragraph
+which is multiline
+
 Second paragraph
 ### Title3
 Third paragraph
@@ -47,7 +64,7 @@ Alternate header 1
 
 	REQUIRE(doc.getHtml() ==
 		"<!DOCTYPE html><html><head></head><body>"
-		"<p>First paragraph</p>"
+		"<p>First paragraph which is multiline</p>"
 		"<p>Second paragraph</p>"
 		"<h3>Title3</h3>"
 		"<p>Third paragraph</p>"

@@ -16,6 +16,7 @@ namespace Markdown
     public:
         virtual ParseResult parseLine(const std::string& line, std::shared_ptr<Element> previous, std::shared_ptr<Element> active = nullptr, Type mask = Type::None);
         virtual void parse(const std::string& content, Type mask = Type::None);
+        virtual void finalize() {};
 
         std::string dump(int indent = 0) const;
 
@@ -77,6 +78,7 @@ namespace Markdown
 
         static Document load(const std::string& path);
         virtual void parse(const std::string& content, Type mask = Type::None) override;
+        virtual void finalize() override;
 
         std::string getText() const;
         std::string getHtml() const;
