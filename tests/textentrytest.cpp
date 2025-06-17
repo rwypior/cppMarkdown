@@ -79,6 +79,19 @@ TEST_CASE("Links", "[textentry]")
 	REQUIRE(te.getHtml() == "<a href=\"link\">Text</a>");
 }
 
+TEST_CASE("Imcomplete link", "[textentry]")
+{
+	{
+		Markdown::TextEntry te("[Text blabla");
+		REQUIRE(te.getHtml() == "[Text blabla");
+	}
+	
+	{
+		Markdown::TextEntry te("[Text](blabla");
+		REQUIRE(te.getHtml() == "[Text](blabla");
+	}
+}
+
 TEST_CASE("Links with escapes", "[textentry]")
 {
 	Markdown::TextEntry te("[Text](link with (parentheses\\) and \\\"quotes\\\")");
@@ -117,6 +130,13 @@ TEST_CASE("Inline double code", "[textentry]")
 TEST_CASE("Images", "[textentry]")
 {
 	REQUIRE(Markdown::TextEntry("![Alt](Link)").getHtml() == "<img src=\"Link\" alt=\"Alt\">");
+}
+
+TEST_CASE("Imcomplete images", "[textentry]")
+{
+	REQUIRE(Markdown::TextEntry("!Something").getHtml() == "!Something");
+	REQUIRE(Markdown::TextEntry("![alt").getHtml() == "![alt");
+	REQUIRE(Markdown::TextEntry("![alt](blabla").getHtml() == "![alt](blabla");
 }
 
 TEST_CASE("Text entry in document", "[textentry]")

@@ -360,6 +360,9 @@ namespace Markdown
 		do
 		{
 			endUrl = str.find_first_of(enclosure, endUrl);
+			if (endUrl == std::string::npos)
+				break;
+
 			if (str[endUrl - 1] == '\\')
 			{
 				endUrl++;
