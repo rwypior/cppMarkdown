@@ -60,7 +60,7 @@ namespace Markdown
 
     std::string CodeElement::getHtml() const
     {
-        return "<code>" + this->text + "</code>";
+        return "<pre><code>" + this->text + "</code></pre>";
     }
 
     std::string CodeElement::getMarkdown() const

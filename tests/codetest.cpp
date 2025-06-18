@@ -24,12 +24,12 @@ TEST_CASE("Simple code block", "[code]")
 	Markdown::CodeElement el("1337 code");
 
 	REQUIRE(el.getText() == "1337 code");
-	REQUIRE(el.getHtml() == "<code>1337 code</code>");
+	REQUIRE(el.getHtml() == "<pre><code>1337 code</code></pre>");
 
 	Markdown::CodeElement el2("This is *some* code with __some special__ stuff");
 
 	REQUIRE(el2.getText() == "This is *some* code with __some special__ stuff");
-	REQUIRE(el2.getHtml() == "<code>This is *some* code with __some special__ stuff</code>");
+	REQUIRE(el2.getHtml() == "<pre><code>This is *some* code with __some special__ stuff</code></pre>");
 }
 
 TEST_CASE("Lone code block in document", "[code]")
@@ -46,7 +46,7 @@ TEST_CASE("Lone code block in document", "[code]")
 	auto it = doc.begin();
 	REQUIRE((*it)->getType() == Markdown::Type::Code);
 	REQUIRE((*it)->getText() == "This is a code block");
-	REQUIRE((*it)->getHtml() == "<code>This is a code block</code>");
+	REQUIRE((*it)->getHtml() == "<pre><code>This is a code block</code></pre>");
 }
 
 TEST_CASE("Code block in document", "[code]")
@@ -70,7 +70,7 @@ And another paragraph)md";
 
 	REQUIRE((*it)->getType() == Markdown::Type::Code);
 	REQUIRE((*it)->getText() == "This is a code block");
-	REQUIRE((*it)->getHtml() == "<code>This is a code block</code>");
+	REQUIRE((*it)->getHtml() == "<pre><code>This is a code block</code></pre>");
 	it++;
 
 	REQUIRE((*it)->getType() == Markdown::Type::Paragraph);
@@ -98,7 +98,7 @@ And another paragraph)md";
 
 	REQUIRE((*it)->getType() == Markdown::Type::Code);
 	REQUIRE((*it)->getText() == "First line of code\nSecond line of code");
-	REQUIRE((*it)->getHtml() == "<code>First line of code\nSecond line of code</code>");
+	REQUIRE((*it)->getHtml() == "<pre><code>First line of code\nSecond line of code</code></pre>");
 	it++;
 
 	REQUIRE((*it)->getType() == Markdown::Type::Paragraph);
@@ -122,5 +122,5 @@ TEST_CASE("Code block with tabs", "[code]")
 
 	REQUIRE((*it)->getType() == Markdown::Type::Code);
 	REQUIRE((*it)->getText() == "A code");
-	REQUIRE((*it)->getHtml() == "<code>A code</code>");
+	REQUIRE((*it)->getHtml() == "<pre><code>A code</code></pre>");
 }
