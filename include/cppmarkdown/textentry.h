@@ -27,7 +27,7 @@ namespace Markdown
 
         virtual ~SpanContainer() = default;
 
-        virtual void parse(const std::string& markdown, const std::shared_ptr<MarkdownStyle> defaultStyle = nullptr, SpanSearchFlags serachFlags = SpanSearchFlags::AddEmpty);
+        virtual void parse(const std::string& markdown, const std::shared_ptr<MarkdownStyle> defaultStyle = nullptr, SpanSearchFlags searchFlags = SpanSearchFlags::AddEmpty);
         virtual Container& getSpans() = 0;
         virtual const Container& getSpans() const = 0;
 
@@ -56,6 +56,9 @@ namespace Markdown
 
         Span(const std::string& text, std::shared_ptr<MarkdownStyle> style, const std::vector<std::unique_ptr<Span>>& children = {});
         virtual ~Span() = default;
+
+        virtual void parse(const std::string& markdown, const std::shared_ptr<MarkdownStyle> defaultStyle = nullptr, SpanSearchFlags searchFlags = SpanSearchFlags::AddEmpty) override;
+        void parseEscapes();
 
         virtual std::unique_ptr<Span> clone() const;
 

@@ -108,4 +108,18 @@ namespace Markdown
             return it->second;
         return {};
     }
+
+    bool isEscaped(const std::string& str, size_t position)
+    {
+        if (position == 0 || position >= str.length())
+            return false;
+
+        if (str[position - 1] != '\\')
+            return false;
+
+        if (!isEscaped(str, position - 1))
+            return str[position - 1] == '\\';
+
+        return false;
+    }
 }

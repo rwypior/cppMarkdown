@@ -155,3 +155,16 @@ TEST_CASE("Italic and image in single TextEntry", "[textentry]")
 {
 	REQUIRE(Markdown::TextEntry("Some text *italic* and ![Some image](Link)").getHtml() == "Some text <em>italic</em> and <img src=\"Link\" alt=\"Some image\">");
 }
+
+TEST_CASE("Escaped text entry", "[textentry]")
+{
+	REQUIRE(Markdown::TextEntry("Text entry with \\*escaped emphasis\\*").getHtml() == "Text entry with *escaped emphasis*");
+}
+
+TEST_CASE("Escaped backslash text entry", "[textentry]")
+{
+	REQUIRE(Markdown::TextEntry("Text entry with \\\\ escaped backslashes").getHtml() == "Text entry with \\ escaped backslashes");
+	REQUIRE(Markdown::TextEntry("Last backslash \\").getHtml() == "Last backslash \\");
+	REQUIRE(Markdown::TextEntry("Last escaped backslash \\\\").getHtml() == "Last escaped backslash \\");
+	REQUIRE(Markdown::TextEntry("Multiple \\ backslashes \\\\ test \\\\\\ test").getHtml() == "Multiple  backslashes \\ test \\ test");
+}

@@ -4,6 +4,7 @@
 #include "cppmarkdown/cppmarkdowncommon.h"
 #include "cppmarkdown/document.h"
 #include "cppmarkdown/textentry.h"
+#include "cppmarkdown/html.h"
 
 #include "cppmarkdown/blankelement.h"
 #include "cppmarkdown/blockquoteelement.h"

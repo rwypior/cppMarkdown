@@ -268,6 +268,9 @@ namespace Markdown
     void replace_in(std::string &source, const std::string& target, const std::string& replacement);
     std::string replace(std::string source, const std::string& target, const std::string& replacement);
     std::vector<std::string> split(const std::string& source, char delimiter);
+
+    // Check if character at given position is escaped with backslash
+    bool isEscaped(const std::string& str, size_t position);
 }
 
 #endif

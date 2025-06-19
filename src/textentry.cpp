@@ -107,8 +107,21 @@ namespace Markdown
 		size_t beginSize = this->markdownOpening.size();
 		size_t endSize = this->markdownClosing.size();
 
-		size_t begin = str.find(this->markdownOpening, offset);
-		size_t end = str.find(this->markdownClosing, begin + beginSize);
+		size_t begin = std::string::npos;
+		size_t end = std::string::npos;
+		size_t escapeOffset = 0;
+		do
+		{
+			begin = str.find(this->markdownOpening, offset + escapeOffset);
+			escapeOffset++;
+		} while (isEscaped(str, begin));
+
+		escapeOffset = 0;
+		do
+		{
+			end = str.find(this->markdownClosing, begin + beginSize + escapeOffset);
+			escapeOffset++;
+		} while (isEscaped(str, end));
 
 		if (end != std::string::npos)
 		{
@@ -121,7 +134,8 @@ namespace Markdown
 				{
 					size_t foundIdx = str.find(style->markdownOpening, recheck);
 					bool found = foundIdx == recheck;
-					good = style->markdownOpening == this->markdownOpening;
+					bool escaped = isEscaped(str, foundIdx);
+					good = style->markdownOpening == this->markdownOpening && !escaped;
 					if (found && !good)
 					{
 						recheck = str.find(this->markdownClosing, recheck + style->markdownOpening.size());
@@ -219,6 +233,31 @@ namespace Markdown
 		for (const auto& child : children)
 		{
 			this->children.push_back(child->clone());
+		}
+	}
+
+	void Span::parse(const std::string& markdown, const std::shared_ptr<MarkdownStyle> defaultStyle, SpanSearchFlags searchFlags)
+	{
+		SpanContainer::parse(markdown, defaultStyle, searchFlags);
+		this->parseEscapes();
+	}
+
+	void Span::parseEscapes()
+	{
+		size_t idx = 0;
+
+		while (true)
+		{
+			size_t pos = this->text.find_first_of('\\', idx);
+
+			if (pos == std::string::npos)
+				break;
+			idx = pos;
+			
+			if (pos != this->text.length() - 1)
+				this->text.erase(pos, 1);
+
+			idx++;
 		}
 	}
 
