@@ -95,7 +95,7 @@ TEST_CASE("Table with styled element", "[table]")
     Markdown::TableElement table(tableMarkdown);
 
     REQUIRE(table.getCell(0, 0)->getText() == "1");
-    REQUIRE(table.getCell(0, 1)->getHtml() == "<b>bold</b> text");
+    REQUIRE(table.getCell(0, 1)->getHtml() == "<strong>bold</strong> text");
 }
 
 TEST_CASE("Table single column", "[table]")

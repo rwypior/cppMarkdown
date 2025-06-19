@@ -1,4 +1,5 @@
 #include "cppmarkdown/ext/tableelement.h"
+#include "cppmarkdown/html.h"
 
 #include <sstream>
 
@@ -199,22 +200,27 @@ namespace Markdown
 
     std::string TableElement::getHtml() const
     {
-        std::string result = "<table><tr>";
+        auto& tagTable = HtmlProvider::get().getTable();
+        auto& tagRow = HtmlProvider::get().getTableRow();
+        auto& tagCell = HtmlProvider::get().getTableCell();
+        auto& tagHeader = HtmlProvider::get().getTableHeader();
+
+        std::string result = tagTable.first + tagRow.first;
         for (const auto &th : this->header)
         {
-            result += std::string("<th>") + th.getHtml() + "</th>";
+            result += tagHeader.first + th.getHtml() + tagHeader.second;
         }
-        result += "</tr>";
+        result += tagRow.second;
         for (const auto &row : this->rows)
         {
-            result += "<tr>";
+            result += tagRow.first;
             for (const auto &td : row)
             {
-                result += std::string("<td>") + td.getHtml() + "</td>";
+                result += tagCell.first + td.getHtml() + tagCell.second;
             }
-            result += "</tr>";
+            result += tagRow.second;
         }
-        result += "</table>";
+        result += tagTable.second;
         return result;
     }
 

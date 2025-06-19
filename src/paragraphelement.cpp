@@ -1,5 +1,6 @@
 #include "cppmarkdown/paragraphelement.h"
 #include "cppmarkdown/linebreakelement.h"
+#include "cppmarkdown/html.h"
 
 #include <vector>
 
@@ -7,7 +8,8 @@ namespace Markdown
 {
 	std::shared_ptr<MarkdownStyle> ParagraphElement::getParagraphStyle() const
 	{
-		return MarkdownStyle::makeHtml("<p>", "</p>");
+		auto& tag = HtmlProvider::get().getParagraph();
+		return MarkdownStyle::makeHtml(tag.first, tag.second);
 	}
 
 	ParagraphElement::ParagraphElement(const std::string& content)

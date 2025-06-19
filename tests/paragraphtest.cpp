@@ -19,11 +19,11 @@ TEST_CASE("Parsing markdown", "[paragraph]")
 {
 	Markdown::ParagraphElement el("*italic text*");
 	REQUIRE(el.getText() == "italic text");
-	REQUIRE(el.getHtml() == "<p><i>italic text</i></p>");
+	REQUIRE(el.getHtml() == "<p><em>italic text</em></p>");
 
 	Markdown::ParagraphElement el2("text **bold** text");
 	REQUIRE(el2.getText() == "text bold text");
-	REQUIRE(el2.getHtml() == "<p>text <b>bold</b> text</p>");
+	REQUIRE(el2.getHtml() == "<p>text <strong>bold</strong> text</p>");
 }
 
 TEST_CASE("Multiple paragraphs", "[paragraph]")
@@ -83,7 +83,7 @@ Third line non-styled)md";
 	REQUIRE(doc.elementsCount() == 1);
 
 	auto it = doc.begin();
-	REQUIRE(std::static_pointer_cast<Markdown::ParagraphElement>(*it)->getHtml() == "<p>First non-styled line Second <b>styled line</b> Third line non-styled</p>");
+	REQUIRE(std::static_pointer_cast<Markdown::ParagraphElement>(*it)->getHtml() == "<p>First non-styled line Second <strong>styled line</strong> Third line non-styled</p>");
 }
 
 TEST_CASE("Blank lines", "[paragraph]")

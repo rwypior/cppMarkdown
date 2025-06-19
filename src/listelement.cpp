@@ -1,6 +1,7 @@
 #include "cppmarkdown/listelement.h"
 #include "cppmarkdown/linebreakelement.h"
 #include "cppmarkdown/blankelement.h"
+#include "cppmarkdown/html.h"
 
 #include <sstream>
 #include <cassert>
@@ -132,13 +133,14 @@ namespace Markdown
 
     std::string ListItem::getHtml() const
     {
-        std::string html = "<li>";
+        auto& tag = HtmlProvider::get().getListItem();
+        std::string html = tag.first;
         html += this->text.getHtml();
         for (const auto& element : this->elements)
         {
             html += element->getHtml();
         }
-        html += "</li>";
+        html += tag.second;
 
         return html;
     }
@@ -273,8 +275,8 @@ namespace Markdown
         std::pair<std::string, std::string> tag;
         switch (this->listType)
         {
-        case ListType::Ordered: tag = {"<ol>", "</ol>"}; break;
-        case ListType::Unordered: tag = {"<ul>", "</ul>"}; break;
+        case ListType::Ordered: tag = HtmlProvider::get().getOrderedList(); break;
+        case ListType::Unordered: tag = HtmlProvider::get().getUnorderedList(); break;
         default: assert(!"Invalid list type"); break;
         }
 

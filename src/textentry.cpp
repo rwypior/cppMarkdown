@@ -1,4 +1,5 @@
 #include "cppmarkdown/textentry.h"
+#include "cppmarkdown/html.h"
 
 #include <queue>
 #include <unordered_map>
@@ -35,6 +36,11 @@ namespace Markdown
 		return result;
 	}
 
+	Style styleFromTag(const std::pair<std::string, std::string>& tag)
+	{
+		return Style(tag.first, tag.second);
+	}
+
 	std::vector<std::unique_ptr<Span>> findStyle(
 		const std::string& source,
 		const std::vector<std::string>& autoescape,
@@ -42,12 +48,12 @@ namespace Markdown
 	)
 	{
 		StyleContainer stylemap{
-			std::make_shared<GenericStyle>("**", "**", Style("<b>", "</b>")),
-			std::make_shared<GenericStyle>("__", "__", Style("<b>", "</b>")),
-			std::make_shared<GenericStyle>("``", "``", Style("<code>", "</code>"), false, std::vector<std::string>({"`"})),
-			std::make_shared<GenericStyle>("*", "*", Style("<i>", "</i>")),
-			std::make_shared<GenericStyle>("_", "_", Style("<i>", "</i>")),
-			std::make_shared<GenericStyle>("`", "`", Style("<code>", "</code>"), false),
+			std::make_shared<GenericStyle>("**", "**", styleFromTag(HtmlProvider::get().getStrong())),
+			std::make_shared<GenericStyle>("__", "__", styleFromTag(HtmlProvider::get().getStrong())),
+			std::make_shared<GenericStyle>("``", "``", styleFromTag(HtmlProvider::get().getInlineCode()), false, std::vector<std::string>({"`"})),
+			std::make_shared<GenericStyle>("*", "*", styleFromTag(HtmlProvider::get().getEmphasis())),
+			std::make_shared<GenericStyle>("_", "_", styleFromTag(HtmlProvider::get().getEmphasis())),
+			std::make_shared<GenericStyle>("`", "`", styleFromTag(HtmlProvider::get().getInlineCode()), false),
 			std::make_shared<ImageStyle>(),
 			std::make_shared<LinkStyle>()
 		};
@@ -432,12 +438,8 @@ namespace Markdown
 		else
 			url = this->url;
 
-		std::string result = "<a href=\"" + url + "\"";
-		if (!title.empty())
-			result += " title=\"" + title + "\"";
-		result += ">" + Span::getHtml() + "</a>";
-
-		return result;
+		auto tag = HtmlProvider::get().getLink(url, title);
+		return tag.first + Span::getHtml() + tag.second;
 	}
 
 	std::string LinkStyle::LinkSpan::getMarkdown() const
@@ -524,12 +526,8 @@ namespace Markdown
 		else
 			url = this->url;
 
-		std::string result = "<img src=\"" + url + "\" alt=\"" + this->text + "\"";
-		if (!title.empty())
-			result += " title=\"" + title + "\"";
-		result += ">";
-
-		return result;
+		auto tag = HtmlProvider::get().getImage(this->text, url, title);
+		return tag.first + tag.second;
 	}
 
 	std::string ImageStyle::ImageSpan::getMarkdown() const

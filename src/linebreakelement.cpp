@@ -1,4 +1,5 @@
 #include "cppmarkdown/linebreakelement.h"
+#include "cppmarkdown/html.h"
 
 #include <cassert>
 #include <algorithm>
@@ -37,7 +38,8 @@ namespace Markdown
 
     std::string LineBreakElement::getHtml() const
     {
-        return "<br>";
+        auto& tag = HtmlProvider::get().getLineBreak();
+        return tag.first + tag.second;
     }
 
     std::string LineBreakElement::getMarkdown() const

@@ -1,4 +1,5 @@
 #include "cppmarkdown/codeelement.h"
+#include "cppmarkdown/html.h"
 
 #include <cassert>
 
@@ -60,7 +61,8 @@ namespace Markdown
 
     std::string CodeElement::getHtml() const
     {
-        return "<pre><code>" + this->text + "</code></pre>";
+        auto& tag = HtmlProvider::get().getCode();
+        return tag.first + this->text + tag.second;
     }
 
     std::string CodeElement::getMarkdown() const

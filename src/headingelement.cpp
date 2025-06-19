@@ -1,5 +1,6 @@
 #include "cppmarkdown/headingelement.h"
 #include "cppmarkdown/paragraphelement.h"
+#include "cppmarkdown/html.h"
 
 #include <cassert>
 
@@ -62,19 +63,14 @@ namespace Markdown
 
     std::shared_ptr<MarkdownStyle> HeadingElement::getDefaultStyle(Heading heading)
     {
-        switch (heading)
+        if (heading == Heading::Invalid)
         {
-        case Heading::Heading1: return MarkdownStyle::makeHtml("<h1>", "</h1>");
-        case Heading::Heading2: return MarkdownStyle::makeHtml("<h2>", "</h2>");
-        case Heading::Heading3: return MarkdownStyle::makeHtml("<h3>", "</h3>");
-        case Heading::Heading4: return MarkdownStyle::makeHtml("<h4>", "</h4>");
-        case Heading::Heading5: return MarkdownStyle::makeHtml("<h5>", "</h5>");
-        case Heading::Heading6: return MarkdownStyle::makeHtml("<h6>", "</h6>");
-        case Heading::Invalid: break;
+            assert(!"Invalid heading");
+            heading = Heading::Heading1;
         }
 
-        assert(!"Invalid heading element");
-        return MarkdownStyle::makeHtml("<h1>", "</h1>");
+        auto& tag = HtmlProvider::get().getHeading(static_cast<int>(heading));
+        return MarkdownStyle::makeHtml(tag.first, tag.second);
     }
 
     std::string HeadingElement::getHeadingText(const std::string& line)

@@ -1,5 +1,6 @@
 #include "cppmarkdown/blockquoteelement.h"
 #include "cppmarkdown/cppmarkdowncommon.h"
+#include "cppmarkdown/html.h"
 
 #include <sstream>
 
@@ -65,12 +66,13 @@ namespace Markdown
 
     std::string BlockquoteElement::getHtml() const
     {
-        std::string html = "<blockquote>";
+        auto& tag = HtmlProvider::get().getBlockquote();
+        std::string html = tag.first;
         for (const auto& element : this->elements)
         {
             html += element->getHtml();
         }
-        html += "</blockquote>";
+        html += tag.second;
         return html;
     }
 

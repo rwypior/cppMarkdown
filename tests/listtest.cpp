@@ -312,7 +312,7 @@ TEST_CASE("List with styles", "[list]")
 		"<!DOCTYPE html><html><head></head><body>"
 		"<ul>"
 		"<li>First</li>"
-		"<li>Second <b>this is bold!</b></li>"
+		"<li>Second <strong>this is bold!</strong></li>"
 		"<li>Third</li>"
 		"</ul>"
 		"</body></html>"

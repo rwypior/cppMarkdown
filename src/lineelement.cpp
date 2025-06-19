@@ -1,5 +1,6 @@
 #include "cppmarkdown/lineelement.h"
 #include "cppmarkdown/paragraphelement.h"
+#include "cppmarkdown/html.h"
 
 #include <cassert>
 
@@ -44,7 +45,8 @@ namespace Markdown
 
     std::string LineElement::getHtml() const
     {
-        return "<hr>";
+        auto& tag = HtmlProvider::get().getLine();
+        return tag.first + tag.second;
     }
 
     std::string LineElement::getMarkdown() const
